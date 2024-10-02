@@ -60,13 +60,15 @@ class IsolateManagerShared {
     String subPath = '',
     QueueStrategy<Object, List<Object>>? queueStrategy,
     bool isDebug = false,
-  }) : _manager = IsolateManager.create(
-          internalFunction,
-          workerName: useWorker ? join(subPath, kSharedWorkerName) : '',
-          workerConverter: workerConverter,
+  }) : _manager = IsolateManager.fromSettings(
+          IsolateSettings(
+            isolateFunction: internalFunction,
+            workerName: useWorker ? join(subPath, kSharedWorkerName) : '',
+            workerConverter: workerConverter,
+            isDebug: isDebug,
+          ),
           concurrent: concurrent,
           queueStrategy: queueStrategy,
-          isDebug: isDebug,
         ) {
     if (autoStart) start();
   }

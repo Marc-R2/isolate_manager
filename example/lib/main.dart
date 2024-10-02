@@ -34,39 +34,51 @@ class _MyAppState extends State<MyApp> {
     isDebug: true,
   )..start();
 
-  final isolateIsolateFunction = IsolateManager.createCustom(
+  final isolateIsolateFunction = IsolateManager.fromSettings(
+    IsolateSettings(
+      isolateFunction: isolateFunction,
+      isDebug: true,
+    ),
     concurrent: 2,
-    isolateFunction,
-    isDebug: true,
   );
 
-  final isolateFunctionName = IsolateManager.create(
-    functionName,
-    workerName: 'functionName',
-    isDebug: true,
+  final isolateFunctionName = IsolateManager.fromSettings(
+    IsolateSettings(
+      isolateFunction: functionName,
+      workerName: 'functionName',
+      isDebug: true,
+    ),
   );
 
-  final isolateError = IsolateManager.create(
-    errorFunction,
+  final isolateError = IsolateManager.fromSettings(
+    IsolateSettings(
+      isolateFunction: errorFunction,
+      isDebug: true,
+    ),
     concurrent: 1,
-    isDebug: true,
   );
 
-  final isolateProgress = IsolateManager<String?, String?>.createCustom(
-    isolateProgressFunction,
-    workerName: 'isolateProgressFunction',
-    isDebug: true,
+  final isolateProgress = IsolateManager<String?, String?>.fromSettings(
+    IsolateSettings.custom(
+      isolateFunction: isolateProgressFunction,
+      workerName: 'isolateProgressFunction',
+      isDebug: true,
+    ),
   );
 
-  final isolateComplexFunction = IsolateManager.create(
-    complexFunction,
-    workerName: 'complexFunction',
-    isDebug: true,
+  final isolateComplexFunction = IsolateManager.fromSettings(
+    IsolateSettings(
+      isolateFunction: complexFunction,
+      workerName: 'complexFunction',
+      isDebug: true,
+    ),
   );
 
-  final isolateFetchAndDecode = IsolateManager.create(
-    fetchAndDecode,
-    isDebug: true,
+  final isolateFetchAndDecode = IsolateManager.fromSettings(
+    IsolateSettings(
+      isolateFunction: fetchAndDecode,
+      isDebug: true,
+    ),
   );
 
   int fibonacciFutureParam = 2;

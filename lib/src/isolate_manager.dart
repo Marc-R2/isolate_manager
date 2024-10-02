@@ -1,10 +1,8 @@
 import 'dart:async';
 
-import 'package:isolate_manager/src/models/queue_strategy.dart';
+import 'package:isolate_manager/isolate_manager.dart';
 
 import 'base/isolate_contactor.dart';
-import 'base/isolate_manager_shared.dart';
-import 'isolate_manager_function.dart';
 import 'models/isolate_queue.dart';
 
 /// Type for the callback of the isolate.
@@ -13,8 +11,7 @@ typedef IsolateCallback<R> = FutureOr<bool> Function(R value);
 /// Callback for the `createCustom`'s `function`.
 typedef IsolateCustomFunction = IsolateFunction<void, dynamic>;
 
-/// Create a new [IsolateManager] instance by using [IsolateManager.create] or
-/// [IsolateManager.createCustom].
+/// Create new [IsolateManager] instance by using [IsolateManager.fromSettings]
 class IsolateManager<R, P> {
   /// Debug logs prefix.
   static String debugLogPrefix = 'Isolate Manager';
@@ -25,38 +22,8 @@ class IsolateManager<R, P> {
   /// Get Target Number of concurrent isolates.
   int get concurrent => _concurrent;
 
-  /// Isolate function.
-  final Object isolateFunction;
-
-  /// Name of the `Worker` without the extension.
-  ///
-  /// Ex: Worker: `worker.js` => workerName: 'worker;
-  ///     Worker: `workers/worker.js` => workerName: 'workers/worker'
-  final String workerName;
-
-  /// Initial parameters.
-  final Object? initialParams;
-
-  /// Is using your own isolate function.
-  final bool isCustomIsolate;
-
-  /// Allow print debug log.
-  final bool isDebug;
-
   /// Get value as stream.
   Stream<R> get eventStream => _eventStreamController.stream;
-
-  /// Convert the result received from the isolate before getting real result.
-  /// This function useful when the result received from the isolate is different
-  /// from the return type.
-  final IsolateConverter<R>? converter;
-
-  /// Convert the result received from the isolate before getting real result.
-  /// This function useful when the result received from the isolate is different
-  /// from the return type.
-  ///
-  /// This function only available in `Worker` mode on Web platform.
-  final IsolateConverter<R>? workerConverter;
 
   /// Get current number of queues.
   int get queuesLength => queueStrategy.queuesCount;
@@ -78,38 +45,65 @@ class IsolateManager<R, P> {
   bool get isStarted => _startedCompleter.isCompleted;
 
   /// An easy way to create a new isolate.
-  IsolateManager.create(
-    IsolateFunction<R, P> this.isolateFunction, {
-    this.workerName = '',
-    int concurrent = 1,
-    this.converter,
-    this.workerConverter,
+  IsolateManager.fromSettings(
+    this.settings, {
     QueueStrategy<R, P>? queueStrategy,
-    this.isDebug = false,
-  })  : isCustomIsolate = false,
-        initialParams = '',
-        _concurrent = concurrent,
-        queueStrategy = queueStrategy ?? QueueStrategyUnlimited() {
+    int concurrent = 1,
+  })  : queueStrategy = queueStrategy ?? QueueStrategyUnlimited(),
+        _concurrent = concurrent {
     // Set the debug log prefix.
     IsolateContactor.debugLogPrefix = debugLogPrefix;
   }
 
-  /// Create a new isolate with your own isolate function.
-  IsolateManager.createCustom(
-    IsolateCustomFunction this.isolateFunction, {
-    this.workerName = '',
-    this.initialParams,
+  /// An easy way to create a new isolate.
+  @Deprecated('Use IsolateManager.fromSettings')
+  factory IsolateManager.create(
+    IsolateFunction<R, P> isolateFunction, {
+    String workerName = '',
     int concurrent = 1,
-    this.converter,
-    this.workerConverter,
+    IsolateConverter<R>? converter,
+    IsolateConverter<R>? workerConverter,
     QueueStrategy<R, P>? queueStrategy,
-    this.isDebug = false,
-  })  : isCustomIsolate = true,
-        _concurrent = concurrent,
-        queueStrategy = queueStrategy ?? QueueStrategyUnlimited() {
-    // Set the debug log prefix.
-    IsolateContactor.debugLogPrefix = debugLogPrefix;
-  }
+    bool isDebug = false,
+  }) =>
+      IsolateManager.fromSettings(
+        IsolateSettings<R, P>(
+          isolateFunction: isolateFunction,
+          converter: converter,
+          workerConverter: workerConverter,
+          workerName: workerName,
+          isDebug: isDebug,
+        ),
+        queueStrategy: queueStrategy,
+        concurrent: concurrent,
+      );
+
+  /// Create a new isolate with your own isolate function.
+  @Deprecated('Use IsolateManager.fromSettings')
+  factory IsolateManager.createCustom(
+    IsolateCustomFunction isolateFunction, {
+    String workerName = '',
+    Object? initialParams,
+    int concurrent = 1,
+    IsolateConverter<R>? converter,
+    IsolateConverter<R>? workerConverter,
+    QueueStrategy<R, P>? queueStrategy,
+    bool isDebug = false,
+  }) =>
+      IsolateManager.fromSettings(
+        IsolateSettings<R, P>.custom(
+          isolateFunction: isolateFunction,
+          converter: converter,
+          workerConverter: workerConverter,
+          workerName: workerName,
+          initialParams: initialParams,
+          isDebug: isDebug,
+        ),
+        queueStrategy: queueStrategy,
+        concurrent: concurrent,
+      );
+
+  final IsolateSettings<R, P> settings;
 
   /// Create multiple long live isolates for computation. This method can be used
   /// to compute multiple functions.
@@ -177,15 +171,6 @@ class IsolateManager<R, P> {
   /// Control when the `start` method is completed.
   Completer<void> _startedCompleter = Completer();
 
-  /// A default function for using the [IsolateManager.create] method.
-  static void _defaultIsolateFunction<R, P>(dynamic params) {
-    IsolateManagerFunction.customFunction<R, P>(params,
-        onEvent: (controller, message) {
-      final function = controller.initialParams;
-      return function(message);
-    });
-  }
-
   /// Initialize the instance. This method can be called manually or will be
   /// called when the first `compute()` has been made.
   Future<void> start() async {
@@ -220,35 +205,22 @@ class IsolateManager<R, P> {
   Future<void> scale(int count) async {
     assert(count > 0, 'The number of isolates must be greater than 0.');
     _concurrent = count;
+    final waiting = <Future<void>>[];
+
     if (concurrent > _isolates.length) {
-      final (isolateFunctionData, paramsData) = switch (isCustomIsolate) {
-        true => (isolateFunction as IsolateCustomFunction, initialParams),
-        false => (_defaultIsolateFunction<R, P>, this.isolateFunction),
-      };
-
-      final waiting = <Future<IsolateContactor>>[];
-
       for (int i = 0; i < concurrent - _isolates.length; i++) {
-        final isolate = IsolateContactor.createCustom<R, P>(
-          isolateFunctionData,
-          workerName: workerName,
-          initialParams: paramsData,
-          converter: converter,
-          workerConverter: workerConverter,
-          debugMode: isDebug,
-        );
+        final isolate = settings.createIsolateContactor();
         waiting.add(isolate);
         isolate.then((value) => _isolates.addAll({value: false}));
       }
-
-      await Future.wait(waiting);
     } else {
       for (int i = 0; i < _isolates.length - concurrent; i++) {
         final isolate = _isolates.keys.last;
         _isolates.remove(isolate);
-        await isolate.dispose();
+        waiting.add(isolate.dispose());
       }
     }
+    await Future.wait(waiting);
   }
 
   /// Stop isolate manager without close streamController.
@@ -425,7 +397,7 @@ class IsolateManager<R, P> {
 
   /// Print logs if [isDebug] is true
   void printDebug(Object? Function() object) {
-    if (isDebug) {
+    if (settings.isDebug) {
       print('[$debugLogPrefix]: ${object()}');
     }
   }

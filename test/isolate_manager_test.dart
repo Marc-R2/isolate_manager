@@ -28,10 +28,12 @@ void main() {
 
   test('Test IsolateManager.create: Basic Usage', () async {
     // Create IsolateContactor
-    final isolateManager = IsolateManager.create(
-      fibonacci,
+    final isolateManager = IsolateManager.fromSettings(
+      IsolateSettings(
+        isolateFunction: fibonacci,
+        isDebug: true,
+      ),
       concurrent: 4,
-      isDebug: true,
     );
 
     final result = await isolateManager.compute(3);
@@ -43,8 +45,8 @@ void main() {
 
   test('Test IsolateManager.create', () async {
     // Create IsolateContactor
-    final isolateManager = IsolateManager.create(
-      fibonacci,
+    final isolateManager = IsolateManager.fromSettings(
+      IsolateSettings(isolateFunction: fibonacci),
       concurrent: 4,
     );
 
@@ -69,10 +71,13 @@ void main() {
 
   test('Test IsolateManager.createCustom', () async {
     // Create IsolateContactor
-    final isolateManager = IsolateManager<int, int>.createCustom(
-      isolateFunction,
+    final isolateManager = IsolateManager<int, int>.fromSettings(
+      IsolateSettings.custom(
+        isolateFunction: isolateFunction,
+        initialParams: ['Test initialParams 0', 'Test initialParams 1'],
+        workerName: 'fibonacci',
+      ),
       concurrent: 4,
-      initialParams: ['Test initialParams 0', 'Test initialParams 1'],
     )..start();
 
     isolateManager.eventStream
@@ -102,8 +107,8 @@ void main() {
 
   test('Test IsolateManager.createCustom with `null` initialParams', () async {
     // Create IsolateContactor
-    final isolateManager = IsolateManager<int, int>.createCustom(
-      isolateFunction,
+    final isolateManager = IsolateManager<int, int>.fromSettings(
+      IsolateSettings.custom(isolateFunction: isolateFunction),
       concurrent: 1,
     )..start();
 
@@ -114,10 +119,12 @@ void main() {
   test('Test IsolateManager.createCustom with automatically handlers',
       () async {
     // Create IsolateContactor
-    final isolateManager = IsolateManager<int, int>.createCustom(
-      isolateFunctionWithAutomaticallyHandlers,
+    final isolateManager = IsolateManager<int, int>.fromSettings(
+      IsolateSettings.custom(
+        isolateFunction: isolateFunctionWithAutomaticallyHandlers,
+        initialParams: ['Test initialParams 0', 'Test initialParams 1'],
+      ),
       concurrent: 4,
-      initialParams: ['Test initialParams 0', 'Test initialParams 1'],
     )..start();
 
     isolateManager.eventStream
@@ -147,9 +154,11 @@ void main() {
 
   test('Test IsolateManager.create with Worker', () async {
     // Create IsolateContactor
-    final isolateManager = IsolateManager.create(
-      fibonacci,
-      workerName: 'fibonacci',
+    final isolateManager = IsolateManager.fromSettings(
+      IsolateSettings(
+        isolateFunction: fibonacci,
+        workerName: 'fibonacci',
+      ),
       concurrent: 4,
     );
 
@@ -168,8 +177,8 @@ void main() {
   });
 
   test('Test with Exception future function', () async {
-    final isolateManager = IsolateManager.create(
-      errorFunctionFuture,
+    final isolateManager = IsolateManager.fromSettings(
+      IsolateSettings(isolateFunction: errorFunctionFuture),
       concurrent: 1,
     );
     await isolateManager.start();
@@ -182,8 +191,8 @@ void main() {
   });
 
   test('Test with Exception function', () async {
-    final isolateManager = IsolateManager.create(
-      errorFunction,
+    final isolateManager = IsolateManager.fromSettings(
+      IsolateSettings(isolateFunction: errorFunction),
       concurrent: 1,
     );
     await isolateManager.start();
@@ -196,8 +205,8 @@ void main() {
   });
 
   test('Test with Exception function with available callback', () async {
-    final isolateManager = IsolateManager.create(
-      errorFunction,
+    final isolateManager = IsolateManager.fromSettings(
+      IsolateSettings(isolateFunction: errorFunction),
       concurrent: 1,
     );
     await isolateManager.start();
@@ -212,8 +221,8 @@ void main() {
   });
 
   test('Test with Exception function with eagerError is true', () async {
-    final isolateManager = IsolateManager.create(
-      errorFunction,
+    final isolateManager = IsolateManager.fromSettings(
+      IsolateSettings(isolateFunction: errorFunction),
       concurrent: 2,
     );
     await isolateManager.start();
@@ -233,8 +242,8 @@ void main() {
   test(
       'Test with Exception function with eagerError is true with available callback',
       () async {
-    final isolateManager = IsolateManager.create(
-      errorFunction,
+    final isolateManager = IsolateManager.fromSettings(
+      IsolateSettings(isolateFunction: errorFunction),
       concurrent: 2,
     );
     await isolateManager.start();
@@ -252,8 +261,8 @@ void main() {
   });
 
   test('Test with Exception function with eagerError is false', () async {
-    final isolateManager = IsolateManager.create(
-      errorFunction,
+    final isolateManager = IsolateManager.fromSettings(
+      IsolateSettings(isolateFunction: errorFunction),
       concurrent: 2,
     );
     await isolateManager.start();
@@ -273,8 +282,8 @@ void main() {
   test(
       'Test with Exception function with eagerError is false with available callback',
       () async {
-    final isolateManager = IsolateManager.create(
-      errorFunction,
+    final isolateManager = IsolateManager.fromSettings(
+      IsolateSettings(isolateFunction: errorFunction),
       concurrent: 2,
     );
     await isolateManager.start();
@@ -292,10 +301,12 @@ void main() {
   });
 
   test('Test with IsolateCallback', () async {
-    final isolateManager = IsolateManager<String, int>.createCustom(
-      isolateCallbackFunction,
+    final isolateManager = IsolateManager<String, int>.fromSettings(
+      IsolateSettings.custom(
+        isolateFunction: isolateCallbackFunction,
+        workerName: 'workers/isolateCallbackFunction',
+      ),
       concurrent: 1,
-      workerName: 'workers/isolateCallbackFunction',
     );
     await isolateManager.start();
 
@@ -320,10 +331,12 @@ void main() {
   });
 
   test('Test with IsolateCallback with simpler function', () async {
-    final isolateManager = IsolateManager<String, int>.createCustom(
-      isolateCallbackSimpleFunction,
+    final isolateManager = IsolateManager<String, int>.fromSettings(
+      IsolateSettings.custom(
+        isolateFunction: isolateCallbackSimpleFunction,
+        workerName: 'workers/isolateCallbackSimpleFunction',
+      ),
       concurrent: 1,
-      workerName: 'workers/isolateCallbackSimpleFunction',
     );
     await isolateManager.start();
 
@@ -349,10 +362,12 @@ void main() {
 
   test('Test with IsolateCallback with simpler specified type function',
       () async {
-    final isolateManager = IsolateManager<String, int>.createCustom(
-      isolateCallbackSimpleFunctionWithSpecifiedType,
+    final isolateManager = IsolateManager<String, int>.fromSettings(
+      IsolateSettings.custom(
+        isolateFunction: isolateCallbackSimpleFunctionWithSpecifiedType,
+        workerName: 'isolateCallbackSimpleFunctionWithSpecifiedType',
+      ),
       concurrent: 1,
-      workerName: 'isolateCallbackSimpleFunctionWithSpecifiedType',
     );
     await isolateManager.start();
 
@@ -379,8 +394,10 @@ void main() {
   test(
       'Test with IsolateCallback with simpler specified type function no Worker',
       () async {
-    final isolateManager = IsolateManager<String, int>.createCustom(
-      isolateCallbackSimpleFunctionWithSpecifiedType,
+    final isolateManager = IsolateManager<String, int>.fromSettings(
+      IsolateSettings.custom(
+        isolateFunction: isolateCallbackSimpleFunctionWithSpecifiedType,
+      ),
       concurrent: 1,
     );
     await isolateManager.start();
@@ -406,11 +423,13 @@ void main() {
   });
 
   test('Test with returning a List<String>', () async {
-    final isolate = IsolateManager.create(
-      aStringList,
-      workerName: 'workers/aStringList',
-      // Cast to List<String>
-      workerConverter: (value) => value.cast<String>() as List<String>,
+    final isolate = IsolateManager.fromSettings(
+      IsolateSettings(
+        isolateFunction: aStringList,
+        workerName: 'workers/aStringList',
+        // Cast to List<String>
+        workerConverter: (value) => value.cast<String>() as List<String>,
+      ),
     );
     await isolate.start();
 
@@ -421,9 +440,11 @@ void main() {
   });
 
   test('Test with returning a Map<String, int>', () async {
-    final isolate = IsolateManager.create(
-      aStringIntMap,
-      workerName: 'aStringIntMap',
+    final isolate = IsolateManager.fromSettings(
+      IsolateSettings(
+        isolateFunction: aStringIntMap,
+        workerName: 'aStringIntMap',
+      ),
     );
     await isolate.start();
 

@@ -40,11 +40,13 @@ Future<void> execute(int fibonacciNumber) async {
     ..stop()
     ..reset();
 
-  // One Isolate (Worker)
-  final singleIsolate = IsolateManager.create(
-    fibonacciRecursive,
+  const settings = IsolateSettings(
+    isolateFunction: fibonacciRecursive,
     workerName: 'fibonacciRecursive',
   );
+
+  // One Isolate (Worker)
+  final singleIsolate = IsolateManager.fromSettings(settings);
   await singleIsolate.start();
   stopWatch.start();
   for (int i = 0; i < 70; i++) {
@@ -56,10 +58,9 @@ Future<void> execute(int fibonacciNumber) async {
     ..reset();
 
   // Three Isolates (Workers)
-  final threeIsolates = IsolateManager.create(
-    fibonacciRecursive,
+  final threeIsolates = IsolateManager.fromSettings(
+    settings,
     concurrent: 3,
-    workerName: 'fibonacciRecursive',
   );
   await threeIsolates.start();
 

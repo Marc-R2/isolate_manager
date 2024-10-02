@@ -13,8 +13,8 @@ Future<R> platformExecuteImpl<R extends Object, P extends Object>({
   required Object? workerParams,
   required bool priority,
 }) async {
-  final isWorker = manager.workerName != '';
-  final isDebug = manager.isDebug;
+  final isWorker = manager.settings.workerName != '';
+  final isDebug = manager.settings.isDebug;
   if (isDebug && isWorker && workerFunction == null) {
     print('[Isolate Manager] Worker is available but `workerFunction` is null, '
         'so `Future` will be used instead');

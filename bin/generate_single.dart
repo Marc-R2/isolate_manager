@@ -5,7 +5,7 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:args/args.dart';
-import 'package:isolate_manager/src/isolate_manager.dart';
+import 'package:isolate_manager/isolate_manager.dart';
 import 'package:path/path.dart' as p;
 
 import 'model/annotation_result.dart';
@@ -38,8 +38,8 @@ Future<void> generate(ArgResults argResults, List<String> dartArgs) async {
   }
 
   final List<FileSystemEntity> allFiles = _listAllFiles(Directory(input), []);
-  final isolateManager = IsolateManager.create(
-    _getAndGenerateFromAnotatedFunctions,
+  final isolateManager = IsolateManager.fromSettings(
+    IsolateSettings(isolateFunction: _getAndGenerateFromAnotatedFunctions),
     concurrent: 3,
   )..start();
 

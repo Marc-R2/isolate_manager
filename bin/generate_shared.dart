@@ -35,8 +35,8 @@ Future<void> generate(ArgResults argResults, List<String> dartArgs) async {
   }
 
   final List<FileSystemEntity> allFiles = _listAllFiles(Directory(input), []);
-  final isolateManager = IsolateManager.create(
-    _getAndGenerateFromAnotatedFunctions,
+  final isolateManager = IsolateManager.fromSettings(
+    IsolateSettings(isolateFunction: _getAndGenerateFromAnotatedFunctions),
     concurrent: 3,
   )..start();
 
