@@ -59,8 +59,7 @@ class IsolateContactorInternal<R, P> extends IsolateContactor<R, P> {
     required IsolateConverter<R> workerConverter,
     bool debugMode = false,
   }) async {
-    IsolateContactorInternal<R, P> isolateContactor =
-        IsolateContactorInternal._(
+    final isolateContactor = IsolateContactorInternal<R, P>._(
       isolateFunction: isolateFunction,
       workerName: workerName,
       isolateParam: initialParams,
@@ -86,7 +85,9 @@ class IsolateContactorInternal<R, P> extends IsolateContactor<R, P> {
     });
 
     _isolate = await Isolate.spawn(
-        _isolateFunction, [_isolateParam, _receivePort.sendPort]);
+      _isolateFunction,
+      [_isolateParam, _receivePort.sendPort],
+    );
 
     await _isolateContactorController.ensureInitialized.future;
     printDebug(() => 'Initialized');
@@ -96,7 +97,7 @@ class IsolateContactorInternal<R, P> extends IsolateContactor<R, P> {
     _isolateContactorController.sendIsolateState(IsolateState.dispose);
     await _isolateContactorController.close();
     _receivePort.close();
-    _isolate!.kill(priority: Isolate.beforeNextEvent);
+    _isolate!.kill();
     _isolate = null;
   }
 

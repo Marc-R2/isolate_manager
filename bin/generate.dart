@@ -15,12 +15,10 @@ void main(List<String> args) async {
   final parser = ArgParser()
     ..addFlag(
       'single',
-      defaultsTo: false,
       help: 'Generate the single Workers',
     )
     ..addFlag(
       'shared',
-      defaultsTo: false,
       help: 'Generate the shared Workers',
     )
     ..addOption(
@@ -54,19 +52,17 @@ void main(List<String> args) async {
     )
     ..addFlag(
       'debug',
-      defaultsTo: false,
       help: 'Export the debug files like *.js.deps, *.js.map and *.unopt.wasm',
     )
     ..addFlag(
       'wasm',
-      defaultsTo: false,
       help: 'Compile to wasm',
     );
 
   final argResults = parser.parse(args);
 
-  bool isSingle = argResults['single'] as bool;
-  bool isShared = argResults['shared'] as bool;
+  var isSingle = argResults['single'] as bool;
+  var isShared = argResults['shared'] as bool;
 
   if (!isSingle && !isShared) {
     isSingle = true;

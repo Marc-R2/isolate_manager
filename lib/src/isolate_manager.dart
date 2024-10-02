@@ -278,13 +278,19 @@ class IsolateManager<R, P> {
   ///       return true;
   ///  });
   /// ```
-  Future<R> call(P params,
-          {IsolateCallback<R>? callback, bool priority = false}) =>
+  Future<R> call(
+    P params, {
+    IsolateCallback<R>? callback,
+    bool priority = false,
+  }) =>
       compute(params, callback: callback, priority: priority);
 
   ///  Similar to the [compute], for who's using IsolateContactor.
-  Future<R> sendMessage(P params,
-          {IsolateCallback<R>? callback, bool priority = false}) =>
+  Future<R> sendMessage(
+    P params, {
+    IsolateCallback<R>? callback,
+    bool priority = false,
+  }) =>
       compute(params, callback: callback, priority: priority);
 
   /// Compute isolate manager with [R] is return type.
@@ -399,7 +405,7 @@ class IsolateManager<R, P> {
     return queue.completer.future;
   }
 
-  /// Print logs if [isDebug] is true
+  /// Print logs if _settings.isDebug_ is true
   void printDebug(Object? Function() object) {
     if (settings.isDebug) {
       print('[$debugLogPrefix]: ${object()}');

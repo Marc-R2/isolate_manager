@@ -12,6 +12,7 @@ class IsolateContactorControllerImplWorker<R, P>
   IsolateContactorControllerImplWorker(
     dynamic params, {
     required this.onDispose,
+    // ignore: avoid_unused_constructor_parameters
     required IsolateConverter<R> converter, // Converter for native
     required this.workerConverter, // Converter for Worker (Web Only)
   })  : _delegate = params is List
@@ -35,7 +36,9 @@ class IsolateContactorControllerImplWorker<R, P>
       if (IsolateException.isValidObject(event.data)) {
         final exception = IsolateException.fromJson(event.data);
         _mainStreamController.addError(
-            exception.error.toString(), StackTrace.empty);
+          exception.error.toString(),
+          StackTrace.empty,
+        );
         return;
       }
 

@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_redundant_argument_values
+
 import 'dart:async';
 
 import 'package:isolate_manager/isolate_manager.dart';
@@ -26,7 +28,7 @@ void main() async {
       }
     });
 
-    for (double i = 0; i < 10; i++) {
+    for (var i = 0.0; i < 10; i++) {
       isolates
           .compute(addFuture, [i, i], workerFunction: 'addFuture')
           .then((value) async {
@@ -34,13 +36,13 @@ void main() async {
       });
     }
 
-    for (int i = 0; i < 10; i++) {
+    for (var i = 0; i < 10; i++) {
       isolates(add, [i, i], workerFunction: 'add').then((value) {
         expect(value, equals(add([i, i])));
       });
     }
 
-    for (int i = 0; i < 10; i++) {
+    for (var i = 0; i < 10; i++) {
       isolates
           .compute(concat, ['$i', '$i'], workerFunction: 'concat')
           .then((value) {
@@ -75,19 +77,19 @@ void main() async {
       }
     });
 
-    for (double i = 0; i < 10; i++) {
+    for (var i = 0.0; i < 10; i++) {
       isolates.compute(addFuture, [i, i]).then((value) async {
         expect(value, equals(await addFuture([i, i])));
       });
     }
 
-    for (int i = 0; i < 10; i++) {
+    for (var i = 0; i < 10; i++) {
       isolates(add, [i, i]).then((value) {
         expect(value, equals(add([i, i])));
       });
     }
 
-    for (int i = 0; i < 10; i++) {
+    for (var i = 0; i < 10; i++) {
       isolates.compute(concat, ['$i', '$i']).then((value) {
         expect(value, equals(concat(['$i', '$i'])));
       });
@@ -170,7 +172,7 @@ void main() async {
     final result = await isolates.compute(
       complexReturn,
       <List<String>>[
-        <String>['abc']
+        <String>['abc'],
       ],
       workerFunction: 'complexReturn',
     );
@@ -179,12 +181,13 @@ void main() async {
 
     expect(result, isA<List<List<String>>>());
     expect(
-        result,
-        equals(<List<String>>[
-          <String>['abc']
-        ]));
+      result,
+      equals(<List<String>>[
+        ['abc'],
+      ]),
+    );
 
-    isolates.stop();
+    await isolates.stop();
   });
 
   test('Test `workerFunction`', () {

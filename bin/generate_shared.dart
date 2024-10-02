@@ -34,13 +34,16 @@ Future<void> generate(ArgResults argResults, List<String> dartArgs) async {
     return;
   }
 
-  final List<FileSystemEntity> allFiles = _listAllFiles(Directory(input), []);
+  final allFiles = _listAllFiles(Directory(input), []);
   final isolateManager = IsolateManager.fromSettings(
-    IsolateSettings(isolateFunction: _getAndGenerateFromAnotatedFunctions),
+    const IsolateSettings(
+      isolateFunction: _getAndGenerateFromAnotatedFunctions,
+    ),
     concurrent: 3,
-  )..start();
+  );
+  await isolateManager.start();
 
-  List<List<dynamic>> params = [];
+  final params = <List<dynamic>>[];
   for (final file in allFiles) {
     if (file is File && file.path.endsWith('.dart')) {
       final filePath = file.absolute.path;
@@ -54,21 +57,19 @@ Future<void> generate(ArgResults argResults, List<String> dartArgs) async {
 
   print('Total files to generate: ${params.length}');
 
-  Map<String, String> anotatedFunctions = {};
-  int counter = 0;
-  await Future.wait(
-    [
-      for (final param in params)
-        isolateManager.compute(param).then((value) {
-          counter += value.length;
-          anotatedFunctions.addAll(value);
-        })
-    ],
-  );
+  final annotatedFunctions = <String, String>{};
+  var counter = 0;
+  await Future.wait([
+    for (final param in params)
+      isolateManager.compute(param).then((value) {
+        counter += value.length;
+        annotatedFunctions.addAll(value);
+      }),
+  ]);
 
-  if (anotatedFunctions.isNotEmpty) {
+  if (annotatedFunctions.isNotEmpty) {
     await _generateFromAnotatedFunctions(
-      anotatedFunctions,
+      annotatedFunctions,
       obfuscate,
       isDebug,
       isWasm,
@@ -141,8 +142,8 @@ Future<void> _generateFromAnotatedFunctions(
   List<String> dartArgs,
 ) async {
   final file = File('.IsolateManagerShared.${anotatedFunctions.hashCode}.dart');
-  final sink = file.openWrite();
-  sink.writeln("import 'package:isolate_manager/isolate_manager.dart';");
+  final sink = file.openWrite()
+    ..writeln("import 'package:isolate_manager/isolate_manager.dart';");
   for (final function in anotatedFunctions.entries) {
     sink.writeln("import '${p.relative(function.value)}';");
   }
@@ -150,10 +151,11 @@ Future<void> _generateFromAnotatedFunctions(
   for (final function in anotatedFunctions.entries) {
     sink.writeln("'${function.key}' : ${function.key},");
   }
-  sink.writeln('};');
-  sink.writeln('main() {');
-  sink.writeln('  IsolateManagerFunction.sharedWorkerFunction(map);');
-  sink.writeln('}');
+  sink
+    ..writeln('};')
+    ..writeln('main() {')
+    ..writeln('  IsolateManagerFunction.sharedWorkerFunction(map);')
+    ..writeln('}');
   await sink.close();
 
   final extension = isWasm ? 'wasm' : 'js';
@@ -198,7 +200,7 @@ Future<void> _generateFromAnotatedFunctions(
   } else {
     print('Compile ERROR: ${p.relative(outputPath)}');
     final r = result.stdout.toString().split('\n');
-    for (var element in r) {
+    for (final element in r) {
       print('   > $element');
     }
   }
@@ -227,7 +229,7 @@ List<FileSystemEntity> _listAllFiles(
   Directory dir,
   List<FileSystemEntity> fileList,
 ) {
-  final files = dir.listSync(recursive: false);
+  final files = dir.listSync();
 
   for (final file in files) {
     if (file is File) {

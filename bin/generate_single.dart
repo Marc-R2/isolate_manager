@@ -37,11 +37,14 @@ Future<void> generate(ArgResults argResults, List<String> dartArgs) async {
     return;
   }
 
-  final List<FileSystemEntity> allFiles = _listAllFiles(Directory(input), []);
+  final allFiles = _listAllFiles(Directory(input), []);
   final isolateManager = IsolateManager.fromSettings(
-    IsolateSettings(isolateFunction: _getAndGenerateFromAnotatedFunctions),
+    const IsolateSettings(
+      isolateFunction: _getAndGenerateFromAnotatedFunctions,
+    ),
     concurrent: 3,
-  )..start();
+  );
+  await isolateManager.start();
 
   final params = <List<dynamic>>[];
   for (final file in allFiles) {
@@ -49,7 +52,8 @@ Future<void> generate(ArgResults argResults, List<String> dartArgs) async {
       final filePath = file.absolute.path;
       final content = await file.readAsString();
       final pattern = RegExp(
-          '(@$classAnnotation|@$constAnnotation|@$constCustomWorkerAnnotation)');
+        '(@$classAnnotation|@$constAnnotation|@$constCustomWorkerAnnotation)',
+      );
       if (content.contains(pattern)) {
         params.add([filePath, obfuscate, isDebug, isWasm, output, dartArgs]);
       }
@@ -58,13 +62,11 @@ Future<void> generate(ArgResults argResults, List<String> dartArgs) async {
 
   print('Total files to generate: ${params.length}');
 
-  int counter = 0;
-  await Future.wait(
-    [
-      for (final param in params)
-        isolateManager.compute(param).then((value) => counter += value)
-    ],
-  );
+  var counter = 0;
+  await Future.wait([
+    for (final param in params)
+      isolateManager.compute(param).then((value) => counter += value),
+  ]);
 
   print('Total generated functions: $counter');
 
@@ -148,20 +150,18 @@ Future<void> _generateFromAnotatedFunctions(
   String output,
   List<String> dartArgs,
 ) async {
-  await Future.wait(
-    [
-      for (final function in anotatedFunctions.entries)
-        _generateFromAnotatedFunction(
-          sourceFilePath,
-          function,
-          obfuscate,
-          isDebug,
-          isWasm,
-          output,
-          dartArgs,
-        )
-    ],
-  );
+  await Future.wait([
+    for (final function in anotatedFunctions.entries)
+      _generateFromAnotatedFunction(
+        sourceFilePath,
+        function,
+        obfuscate,
+        isDebug,
+        isWasm,
+        output,
+        dartArgs,
+      ),
+  ]);
 }
 
 Future<void> _generateFromAnotatedFunction(
@@ -173,20 +173,21 @@ Future<void> _generateFromAnotatedFunction(
   String output,
   List<String> dartArgs,
 ) async {
-  String inputPath = p.join(
+  var inputPath = p.join(
     p.dirname(sourceFilePath),
     '.IsolateManagerWorker.${function.key}.${function.hashCode}.dart',
   );
   inputPath = p.absolute(inputPath);
   final file = File(inputPath);
-  final sink = file.openWrite();
-  sink.writeln("import '${p.basename(sourceFilePath)}';");
-  sink.writeln("import 'package:isolate_manager/isolate_manager.dart';");
-  sink.writeln();
-  sink.writeln('main() {');
+  final sink = file.openWrite()
+    ..writeln("import '${p.basename(sourceFilePath)}';")
+    ..writeln("import 'package:isolate_manager/isolate_manager.dart';")
+    ..writeln()
+    ..writeln('main() {');
   if (function.value.isCustomWorker) {
     sink.writeln(
-        '  IsolateManagerFunction.customWorkerFunction(${function.key});');
+      '  IsolateManagerFunction.customWorkerFunction(${function.key});',
+    );
   } else {
     sink.writeln('  IsolateManagerFunction.workerFunction(${function.key});');
   }
@@ -228,7 +229,8 @@ Future<void> _generateFromAnotatedFunction(
 
   if (outputFile.existsSync()) {
     print(
-        'Path: ${p.relative(sourceFilePath)} => Function: ${function.key} => Compiled: ${p.relative(outputPath)}');
+      'Path: ${p.relative(sourceFilePath)} => Function: ${function.key} => Compiled: ${p.relative(outputPath)}',
+    );
     if (!isDebug) {
       if (isWasm) {
         await File('$output/$name.unopt.wasm').delete();
@@ -238,9 +240,10 @@ Future<void> _generateFromAnotatedFunction(
     }
   } else {
     print(
-        'Path: ${p.relative(sourceFilePath)} => Function: ${function.key} => Compile ERROR: ${p.relative(outputPath)}');
+      'Path: ${p.relative(sourceFilePath)} => Function: ${function.key} => Compile ERROR: ${p.relative(outputPath)}',
+    );
     final r = result.stdout.toString().split('\n');
-    for (var element in r) {
+    for (final element in r) {
       print('   > $element');
     }
   }
@@ -288,7 +291,7 @@ List<FileSystemEntity> _listAllFiles(
   Directory dir,
   List<FileSystemEntity> fileList,
 ) {
-  final files = dir.listSync(recursive: false);
+  final files = dir.listSync();
 
   for (final file in files) {
     if (file is File) {

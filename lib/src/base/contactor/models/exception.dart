@@ -3,6 +3,10 @@ import 'dart:convert';
 /// This [IsolateException] mainly use to transfer an [Exception] between an `Isolate` and
 /// the main app.
 class IsolateException implements Exception {
+  /// This [IsolateException] mainly use to transfer an [Exception] between an `Isolate` and
+  /// the main app.
+  const IsolateException(this.error, [this.stack = StackTrace.empty]);
+
   /// Convert from JSON.
   factory IsolateException.fromJson(dynamic json) {
     assert(
@@ -18,10 +22,6 @@ class IsolateException implements Exception {
       StackTrace.fromString(values['stack'] as String),
     );
   }
-
-  /// This [IsolateException] mainly use to transfer an [Exception] between an `Isolate` and
-  /// the main app.
-  const IsolateException(this.error, [this.stack = StackTrace.empty]);
 
   /// Error object.
   final Object error;

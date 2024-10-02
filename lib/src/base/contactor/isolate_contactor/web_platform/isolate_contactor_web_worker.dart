@@ -57,8 +57,7 @@ class IsolateContactorInternalWorker<R, P>
     required IsolateConverter<R> workerConverter,
     bool debugMode = false,
   }) async {
-    IsolateContactorInternalWorker<R, P> isolateContactor =
-        IsolateContactorInternalWorker._(
+    final isolateContactor = IsolateContactorInternalWorker<R, P>._(
       isolateFunction: isolateFunction,
       workerName: workerName,
       isolateParam: initialParams,
@@ -115,10 +114,7 @@ class IsolateContactorInternalWorker<R, P>
   Future<R> sendMessage(P message) {
     if (_isolateContactorController == null) {
       printDebug(() => '! This isolate has been terminated');
-      return throw IsolateException(
-        'This isolate was terminated',
-        StackTrace.empty,
-      );
+      return throw const IsolateException('This isolate was terminated');
     }
 
     final completer = Completer<R>();

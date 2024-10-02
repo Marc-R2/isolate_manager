@@ -28,6 +28,6 @@ Future<R> platformExecuteImpl<R extends Object, P extends Object>({
 /// Create a Worker on Web.
 void workerFunctionImpl(Map<String, Function> map) {
   IsolateManagerFunction.workerFunction((List<Object> message) {
-    return internalFunction([map[message[0]] as Function, message[1]]);
+    return internalFunction([map[message[0]]!, message[1]]);
   });
 }

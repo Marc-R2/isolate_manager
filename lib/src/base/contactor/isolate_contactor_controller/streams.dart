@@ -21,7 +21,7 @@ mixin Streams<R, P> {
   Completer<void> ensureInitialized = Completer();
 
   void handleDelegate(dynamic event) {
-    final (key, value) = (event as (IsolatePort, dynamic));
+    final (key, value) = event as (IsolatePort, dynamic);
     switch (key) {
       case IsolatePort.main:
         _handelDelegateMain(value);

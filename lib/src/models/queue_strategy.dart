@@ -59,7 +59,7 @@ abstract class QueueStrategy<R, P> {
 
   /// Get the next computation.
   IsolateQueue<R, P> getNext() {
-    assert(hasNext());
+    assert(hasNext(), 'The Queue is empty');
     return queues.removeFirst();
   }
 

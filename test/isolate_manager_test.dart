@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_redundant_argument_values
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -29,7 +31,7 @@ void main() {
   test('Test IsolateManager.create: Basic Usage', () async {
     // Create IsolateContactor
     final isolateManager = IsolateManager.fromSettings(
-      IsolateSettings(
+      const IsolateSettings(
         isolateFunction: fibonacci,
         isDebug: true,
       ),
@@ -40,13 +42,13 @@ void main() {
 
     expect(result, fibonacci(3));
 
-    isolateManager.stop();
+    await isolateManager.stop();
   });
 
   test('Test IsolateManager.create', () async {
     // Create IsolateContactor
     final isolateManager = IsolateManager.fromSettings(
-      IsolateSettings(isolateFunction: fibonacci),
+      const IsolateSettings(isolateFunction: fibonacci),
       concurrent: 4,
     );
 
@@ -63,22 +65,23 @@ void main() {
       for (int i = 0; i < 10; i++)
         isolateManager.compute(i).then((value) {
           expect(value, fibonacci(i));
-        })
+        }),
     ]);
 
-    isolateManager.stop();
+    await isolateManager.stop();
   });
 
   test('Test IsolateManager.createCustom', () async {
     // Create IsolateContactor
     final isolateManager = IsolateManager<int, int>.fromSettings(
-      IsolateSettings.custom(
+      const IsolateSettings.custom(
         isolateFunction: isolateFunction,
         initialParams: ['Test initialParams 0', 'Test initialParams 1'],
         workerName: 'fibonacci',
       ),
       concurrent: 4,
-    )..start();
+    );
+    await isolateManager.start();
 
     isolateManager.eventStream
         .listen((value) {})
@@ -89,7 +92,7 @@ void main() {
       for (int i = 0; i < 10; i++)
         isolateManager.compute(i).then((value) {
           expect(value, fibonacci(i));
-        })
+        }),
     ]);
 
     await isolateManager.restart();
@@ -98,7 +101,7 @@ void main() {
       for (int i = 5; i < 13; i++)
         isolateManager.compute(i).then((value) {
           expect(value, fibonacci(i));
-        })
+        }),
     ]);
 
     await expectLater(() => isolateManager.sendMessage(-1), throwsStateError);
@@ -108,9 +111,10 @@ void main() {
   test('Test IsolateManager.createCustom with `null` initialParams', () async {
     // Create IsolateContactor
     final isolateManager = IsolateManager<int, int>.fromSettings(
-      IsolateSettings.custom(isolateFunction: isolateFunction),
+      const IsolateSettings.custom(isolateFunction: isolateFunction),
       concurrent: 1,
-    )..start();
+    );
+    await isolateManager.start();
 
     await expectLater(() => isolateManager(-1), throwsStateError);
     await isolateManager.stop();
@@ -120,12 +124,13 @@ void main() {
       () async {
     // Create IsolateContactor
     final isolateManager = IsolateManager<int, int>.fromSettings(
-      IsolateSettings.custom(
+      const IsolateSettings.custom(
         isolateFunction: isolateFunctionWithAutomaticallyHandlers,
         initialParams: ['Test initialParams 0', 'Test initialParams 1'],
       ),
       concurrent: 4,
-    )..start();
+    );
+    await isolateManager.start();
 
     isolateManager.eventStream
         .listen((value) {})
@@ -136,7 +141,7 @@ void main() {
       for (int i = 0; i < 10; i++)
         isolateManager.compute(i).then((value) {
           expect(value, fibonacci(i));
-        })
+        }),
     ]);
 
     await isolateManager.restart();
@@ -145,7 +150,7 @@ void main() {
       for (int i = 5; i < 13; i++)
         isolateManager.compute(i).then((value) {
           expect(value, fibonacci(i));
-        })
+        }),
     ]);
 
     await expectLater(() => isolateManager.sendMessage(-1), throwsStateError);
@@ -155,7 +160,7 @@ void main() {
   test('Test IsolateManager.create with Worker', () async {
     // Create IsolateContactor
     final isolateManager = IsolateManager.fromSettings(
-      IsolateSettings(
+      const IsolateSettings(
         isolateFunction: fibonacci,
         workerName: 'fibonacci',
       ),
@@ -170,7 +175,7 @@ void main() {
           final realFib = fibonacci(i);
 
           expect(value, realFib);
-        })
+        }),
     ]);
 
     await isolateManager.stop();
@@ -178,7 +183,7 @@ void main() {
 
   test('Test with Exception future function', () async {
     final isolateManager = IsolateManager.fromSettings(
-      IsolateSettings(isolateFunction: errorFunctionFuture),
+      const IsolateSettings(isolateFunction: errorFunctionFuture),
       concurrent: 1,
     );
     await isolateManager.start();
@@ -192,7 +197,7 @@ void main() {
 
   test('Test with Exception function', () async {
     final isolateManager = IsolateManager.fromSettings(
-      IsolateSettings(isolateFunction: errorFunction),
+      const IsolateSettings(isolateFunction: errorFunction),
       concurrent: 1,
     );
     await isolateManager.start();
@@ -206,15 +211,13 @@ void main() {
 
   test('Test with Exception function with available callback', () async {
     final isolateManager = IsolateManager.fromSettings(
-      IsolateSettings(isolateFunction: errorFunction),
+      const IsolateSettings(isolateFunction: errorFunction),
       concurrent: 1,
     );
     await isolateManager.start();
 
     await expectLater(
-      () => isolateManager.compute([50, 50], callback: (value) {
-        return true;
-      }),
+      () => isolateManager.compute([50, 50], callback: (value) => true),
       throwsStateError,
     );
     await isolateManager.stop();
@@ -222,7 +225,7 @@ void main() {
 
   test('Test with Exception function with eagerError is true', () async {
     final isolateManager = IsolateManager.fromSettings(
-      IsolateSettings(isolateFunction: errorFunction),
+      const IsolateSettings(isolateFunction: errorFunction),
       concurrent: 2,
     );
     await isolateManager.start();
@@ -243,7 +246,7 @@ void main() {
       'Test with Exception function with eagerError is true with available callback',
       () async {
     final isolateManager = IsolateManager.fromSettings(
-      IsolateSettings(isolateFunction: errorFunction),
+      const IsolateSettings(isolateFunction: errorFunction),
       concurrent: 2,
     );
     await isolateManager.start();
@@ -262,7 +265,7 @@ void main() {
 
   test('Test with Exception function with eagerError is false', () async {
     final isolateManager = IsolateManager.fromSettings(
-      IsolateSettings(isolateFunction: errorFunction),
+      const IsolateSettings(isolateFunction: errorFunction),
       concurrent: 2,
     );
     await isolateManager.start();
@@ -283,7 +286,7 @@ void main() {
       'Test with Exception function with eagerError is false with available callback',
       () async {
     final isolateManager = IsolateManager.fromSettings(
-      IsolateSettings(isolateFunction: errorFunction),
+      const IsolateSettings(isolateFunction: errorFunction),
       concurrent: 2,
     );
     await isolateManager.start();
@@ -310,16 +313,19 @@ void main() {
     );
     await isolateManager.start();
 
-    final result = await isolateManager.compute(1, callback: (value) {
-      final decoded = jsonDecode(value) as Map;
-      // Do not return this [value] as the final result
-      if (decoded.containsKey('source')) {
-        return false;
-      }
+    final result = await isolateManager.compute(
+      1,
+      callback: (value) {
+        final decoded = jsonDecode(value) as Map;
+        // Do not return this [value] as the final result
+        if (decoded.containsKey('source')) {
+          return false;
+        }
 
-      // Return this [value] as the final result
-      return true;
-    });
+        // Return this [value] as the final result
+        return true;
+      },
+    );
 
     final decoded = jsonDecode(result) as Map;
     expect(
@@ -332,7 +338,7 @@ void main() {
 
   test('Test with IsolateCallback with simpler function', () async {
     final isolateManager = IsolateManager<String, int>.fromSettings(
-      IsolateSettings.custom(
+      const IsolateSettings.custom(
         isolateFunction: isolateCallbackSimpleFunction,
         workerName: 'workers/isolateCallbackSimpleFunction',
       ),
@@ -340,16 +346,19 @@ void main() {
     );
     await isolateManager.start();
 
-    final result = await isolateManager.compute(1, callback: (value) {
-      final decoded = jsonDecode(value) as Map;
-      // Do not return this [value] as the final result
-      if (decoded.containsKey('source')) {
-        return false;
-      }
+    final result = await isolateManager.compute(
+      1,
+      callback: (value) {
+        final decoded = jsonDecode(value) as Map;
+        // Do not return this [value] as the final result
+        if (decoded.containsKey('source')) {
+          return false;
+        }
 
-      // Return this [value] as the final result
-      return true;
-    });
+        // Return this [value] as the final result
+        return true;
+      },
+    );
 
     final decoded = jsonDecode(result) as Map;
     expect(
@@ -363,7 +372,7 @@ void main() {
   test('Test with IsolateCallback with simpler specified type function',
       () async {
     final isolateManager = IsolateManager<String, int>.fromSettings(
-      IsolateSettings.custom(
+      const IsolateSettings.custom(
         isolateFunction: isolateCallbackSimpleFunctionWithSpecifiedType,
         workerName: 'isolateCallbackSimpleFunctionWithSpecifiedType',
       ),
@@ -371,16 +380,19 @@ void main() {
     );
     await isolateManager.start();
 
-    final result = await isolateManager.compute(1, callback: (value) {
-      final decoded = jsonDecode(value) as Map;
-      // Do not return this [value] as the final result
-      if (decoded.containsKey('source')) {
-        return false;
-      }
+    final result = await isolateManager.compute(
+      1,
+      callback: (value) {
+        final decoded = jsonDecode(value) as Map;
+        // Do not return this [value] as the final result
+        if (decoded.containsKey('source')) {
+          return false;
+        }
 
-      // Return this [value] as the final result
-      return true;
-    });
+        // Return this [value] as the final result
+        return true;
+      },
+    );
 
     final decoded = jsonDecode(result) as Map;
     expect(
@@ -395,23 +407,26 @@ void main() {
       'Test with IsolateCallback with simpler specified type function no Worker',
       () async {
     final isolateManager = IsolateManager<String, int>.fromSettings(
-      IsolateSettings.custom(
+      const IsolateSettings.custom(
         isolateFunction: isolateCallbackSimpleFunctionWithSpecifiedType,
       ),
       concurrent: 1,
     );
     await isolateManager.start();
 
-    final result = await isolateManager.compute(1, callback: (value) {
-      final decoded = jsonDecode(value) as Map;
-      // Do not return this [value] as the final result
-      if (decoded.containsKey('source')) {
-        return false;
-      }
+    final result = await isolateManager.compute(
+      1,
+      callback: (value) {
+        final decoded = jsonDecode(value) as Map;
+        // Do not return this [value] as the final result
+        if (decoded.containsKey('source')) {
+          return false;
+        }
 
-      // Return this [value] as the final result
-      return true;
-    });
+        // Return this [value] as the final result
+        return true;
+      },
+    );
 
     final decoded = jsonDecode(result) as Map;
     expect(
@@ -441,7 +456,7 @@ void main() {
 
   test('Test with returning a Map<String, int>', () async {
     final isolate = IsolateManager.fromSettings(
-      IsolateSettings(
+      const IsolateSettings(
         isolateFunction: aStringIntMap,
         workerName: 'aStringIntMap',
       ),
@@ -457,7 +472,7 @@ void main() {
   group('Isolate Queue Strategy -', () {
     test('QueueStrategyRemoveNewest with unlimited queue count', () {
       final queueStrategies = QueueStrategyUnlimited<int, int>();
-      for (int i = 0; i < 10; i++) {
+      for (var i = 0; i < 10; i++) {
         queueStrategies.add(ComputeTask<int, int>(i, null));
       }
       expect(queueStrategies.queuesCount, equals(10));
@@ -471,7 +486,7 @@ void main() {
 
     test('QueueStrategyRemoveNewest with addToTop is true', () {
       final queueStrategies = QueueStrategyUnlimited<int, int>();
-      for (int i = 0; i < 10; i++) {
+      for (var i = 0; i < 10; i++) {
         queueStrategies.add(ComputeTask<int, int>(i, null), addToTop: true);
       }
       expect(queueStrategies.queuesCount, equals(10));
@@ -484,7 +499,7 @@ void main() {
 
     test('QueueStrategyRemoveNewest', () {
       final queueStrategies = QueueStrategyRemoveNewest<int, int>(maxCount: 3);
-      for (int i = 0; i < 10; i++) {
+      for (var i = 0; i < 10; i++) {
         queueStrategies.add(ComputeTask<int, int>(i, null));
       }
       expect(queueStrategies.queuesCount, equals(3));
@@ -497,7 +512,7 @@ void main() {
 
     test('QueueStrategyRemoveNewest with addToTop is true', () {
       final queueStrategies = QueueStrategyRemoveNewest<int, int>(maxCount: 3);
-      for (int i = 0; i < 10; i++) {
+      for (var i = 0; i < 10; i++) {
         queueStrategies.add(ComputeTask<int, int>(i, null), addToTop: true);
       }
       expect(queueStrategies.queuesCount, equals(3));
@@ -570,9 +585,11 @@ int fibonacci(int n) {
   if (n == 0) return 0;
   if (n == 1) return 1;
 
-  int f1 = 0, f2 = 1, r = 1;
+  var f1 = 0;
+  var f2 = 1;
+  var r = 1;
 
-  for (int i = 2; i <= n; i++) {
+  for (var i = 2; i <= n; i++) {
     r = f1 + f2;
     f1 = f2;
     f2 = r;
@@ -638,7 +655,7 @@ void isolateCallbackFunction(dynamic params) {
     params,
     onEvent: (controller, message) {
       try {
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           controller.sendResult(jsonEncode({'source': '$i'}));
         }
 
@@ -660,7 +677,7 @@ void isolateCallbackSimpleFunction(dynamic params) {
   IsolateManagerFunction.customFunction(
     params,
     onEvent: (controller, message) {
-      for (int i = 0; i < 10; i++) {
+      for (var i = 0; i < 10; i++) {
         controller.sendResult(jsonEncode({'source': '$i'}));
       }
 
@@ -674,7 +691,7 @@ void isolateCallbackSimpleFunctionWithSpecifiedType(dynamic params) {
   IsolateManagerFunction.customFunction<String, int>(
     params,
     onEvent: (controller, message) {
-      for (int i = 0; i < 10; i++) {
+      for (var i = 0; i < 10; i++) {
         controller.sendResult(jsonEncode({'source': '$i'}));
       }
 
