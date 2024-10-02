@@ -46,7 +46,7 @@ class IsolateManagerControllerImpl<R, P>
 
   /// Send values from Isolate to the main application (to `onMessage`).
   @override
-  void sendResult(dynamic result) => _delegate.sendResult(result);
+  void sendResult(dynamic result) => _delegate.sendResult(result as R);
 
   /// Send the `Exception` to the main app.
   @override

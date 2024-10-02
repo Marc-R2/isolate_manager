@@ -1,19 +1,19 @@
 import 'dart:async';
+import 'dart:isolate';
 
+import 'package:isolate_manager/src/base/contactor/isolate_contactor.dart';
+import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller.dart';
 import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller/streams.dart';
+import 'package:isolate_manager/src/base/contactor/models/exception.dart';
 import 'package:isolate_manager/src/base/contactor/models/isolate_port.dart';
 import 'package:isolate_manager/src/base/contactor/models/isolate_state.dart';
 import 'package:stream_channel/isolate_channel.dart';
 
-import '../isolate_contactor.dart';
-import '../isolate_contactor_controller.dart';
-import '../models/exception.dart';
-
 class IsolateContactorControllerImpl<R, P>
     with Streams<R, P>
     implements IsolateContactorController<R, P> {
-  final IsolateChannel _delegate;
-  late final StreamSubscription _delegateSubscription;
+  final IsolateChannel<(IsolatePort, dynamic)> _delegate;
+  late final StreamSubscription<(IsolatePort, dynamic)> _delegateSubscription;
 
   @override
   final void Function()? onDispose;
@@ -29,14 +29,14 @@ class IsolateContactorControllerImpl<R, P>
     required IsolateConverter<R>?
         workerConverter, // Converter for Worker (Web Only)
   })  : _delegate = params is List
-            ? IsolateChannel.connectSend(params.last)
-            : IsolateChannel.connectReceive(params),
+            ? IsolateChannel.connectSend((params as List<Object?>).last! as SendPort)
+            : IsolateChannel.connectReceive(params as ReceivePort),
         _initialParams = params is List ? params.first : null {
     _delegateSubscription = _delegate.stream.listen(handleDelegate);
   }
 
   @override
-  dynamic useConverter(dynamic value) => converter?.call(value) ?? value;
+  R useConverter(dynamic value) => converter?.call(value) ?? (value as R);
 
   /// Get initial params for `createCustom`
   @override
@@ -62,7 +62,7 @@ class IsolateContactorControllerImpl<R, P>
       _delegate.sink.add((IsolatePort.main, exception));
 
   @override
-  Future<void> close() async => await Future.wait([
+  Future<void> close() async => Future.wait([
         _delegateSubscription.cancel(),
         closeStream(),
       ]);

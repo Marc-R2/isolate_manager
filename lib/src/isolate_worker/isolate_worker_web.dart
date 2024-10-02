@@ -17,22 +17,21 @@ Future<void> isolateWorkerImpl<R, P>(
 ) async {
   final controller = IsolateManagerController<R, P>(self);
   if (onInitial != null) {
-    final completer = Completer<void>();
-    completer.complete(onInitial());
+    final completer = Completer<void>()..complete(onInitial());
     await completer.future;
   }
-  controller.onIsolateMessage.listen((message) {
-    final completer = Completer();
-    completer.future.then(
-      (value) => controller.sendResult(value),
-      onError: (err, stack) =>
-          controller.sendResultError(IsolateException(err, stack)),
-    );
+  controller.onIsolateMessage.listen((message) async {
+    final completer = Completer<R?>();
+    final then = completer.future
+        .then((value) => controller.sendResult(value as R))
+        .onError((err, stack) => completer.completeError(err!, stack));
+
     try {
-      completer.complete(function(message) as dynamic);
+      completer.complete(await function(message));
     } catch (err, stack) {
       completer.completeError(err, stack);
     }
+    await then;
   });
   controller.initialized();
 }

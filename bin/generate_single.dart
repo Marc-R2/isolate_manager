@@ -73,12 +73,12 @@ Future<void> generate(ArgResults argResults, List<String> dartArgs) async {
 }
 
 Future<int> _getAndGenerateFromAnotatedFunctions(List<dynamic> params) async {
-  String filePath = params[0];
-  String obfuscate = params[1];
-  bool isDebug = params[2];
-  bool isWasm = params[3];
-  String output = params[4];
-  List<String> dartArgs = params[5];
+  final filePath = params[0] as String;
+  final obfuscate = params[1] as String;
+  final isDebug = params[2] as bool;
+  final isWasm = params[3] as bool;
+  final output = params[4] as String;
+  final dartArgs = params[5] as List<String>;
 
   final anotatedFunctions = await _getAnotatedFunctions(filePath);
 

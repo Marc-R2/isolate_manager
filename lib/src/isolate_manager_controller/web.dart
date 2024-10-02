@@ -2,9 +2,8 @@ import 'dart:async';
 import 'dart:js_interop';
 
 import 'package:isolate_manager/isolate_manager.dart';
+import 'package:isolate_manager/src/base/isolate_contactor.dart';
 import 'package:web/web.dart';
-
-import '../base/isolate_contactor.dart';
 
 /// This method only use to create a custom isolate.
 ///
@@ -23,7 +22,9 @@ class IsolateManagerControllerImpl<R, P>
     dynamic params, {
     void Function()? onDispose,
   }) : _delegate = params.runtimeType == DedicatedWorkerGlobalScope
-            ? _IsolateManagerWorkerController<R, P>(params)
+            ? _IsolateManagerWorkerController<R, P>(
+                params as DedicatedWorkerGlobalScope,
+              )
             : IsolateContactorController<R, P>(params, onDispose: onDispose);
 
   /// Mark the isolate as initialized.
@@ -39,7 +40,7 @@ class IsolateManagerControllerImpl<R, P>
 
   /// Get initial parameters when you create the IsolateManager.
   @override
-  get initialParams => _delegate.initialParams;
+  dynamic get initialParams => _delegate.initialParams;
 
   /// This parameter is only used for Isolate. Use to listen for values from the main application.
   @override
@@ -62,7 +63,7 @@ class _IsolateManagerWorkerController<R, P>
 
   _IsolateManagerWorkerController(this.self) {
     self.onmessage = (MessageEvent event) {
-      _streamController.sink.add(event.data as dynamic);
+      _streamController.sink.add(event.data as P);
     }.toJS;
   }
 
@@ -75,7 +76,7 @@ class _IsolateManagerWorkerController<R, P>
   /// Send result to the main app
   @override
   void sendResult(dynamic m) {
-    self.postMessage(m);
+    self.postMessage(m as JSAny?);
   }
 
   /// Send error to the main app

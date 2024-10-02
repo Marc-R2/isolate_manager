@@ -23,15 +23,17 @@ class IsolateException implements Exception {
 
   /// Convert from JSON.
   factory IsolateException.fromJson(dynamic json) {
-    assert(isValidObject(json),
-        'json should be checked by `isValidObject` before using');
+    assert(
+      isValidObject(json),
+      'json should be checked by `isValidObject` before using',
+    );
 
     final decoded = jsonDecode(json.toString());
-    final values = decoded[r'$IsolateException'];
+    final values = decoded[r'$IsolateException'] as Map;
 
     return IsolateException(
-      values['error'],
-      StackTrace.fromString(values['stack']),
+      values['error'] as Object,
+      StackTrace.fromString(values['stack'] as String),
     );
   }
 

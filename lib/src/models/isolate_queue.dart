@@ -13,12 +13,11 @@ abstract class IsolateQueue<R, P> {
   /// Use for queuing your `compute`.
   IsolateQueue(this.params, this.callback);
 
-  FutureOr<bool> callCallback(event) {
+  FutureOr<bool> callCallback(R event) {
     final callback = this.callback;
     if (callback == null) return true;
 
-    final completer = Completer<bool>();
-    completer.complete(callback(event));
+    final completer = Completer<bool>()..complete(callback(event));
     return completer.future;
   }
 }

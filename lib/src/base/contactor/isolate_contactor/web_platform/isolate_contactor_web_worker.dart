@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:js_interop';
 
 import 'package:isolate_manager/src/base/contactor/models/isolate_state.dart';
 import 'package:web/web.dart';
@@ -41,7 +42,7 @@ class IsolateContactorInternalWorker<R, P>
         _isolateContactorController = IsolateContactorControllerImpl(
           // TODO: Change to `'$workerName.js'.toJS` when releasing version `6.0.0` (a new major version).
           // this is a workaround to use a wider range of the package `web` version (>=0.5.1 <2.0.0).
-          Worker('$workerName.js' as dynamic),
+          Worker('$workerName.js' as JSAny),
           converter: converter,
           workerConverter: workerConverter,
           onDispose: null,
@@ -83,7 +84,7 @@ class IsolateContactorInternalWorker<R, P>
       printDebug(
         () => '[Main Stream] Error message received from Worker: $err',
       );
-      _mainStreamController.sink.addError(err, stack);
+      _mainStreamController.sink.addError(err as Object, stack as StackTrace?);
     });
 
     await _isolateContactorController!.ensureInitialized.future;
@@ -121,17 +122,17 @@ class IsolateContactorInternalWorker<R, P>
       );
     }
 
-    final Completer<R> completer = Completer();
-    StreamSubscription? sub;
+    final completer = Completer<R>();
+    late final StreamSubscription<R> sub;
     sub = _isolateContactorController!.onMessage.listen((result) async {
       if (!completer.isCompleted) {
         completer.complete(result);
-        await sub?.cancel();
+        await sub.cancel();
       }
     })
       ..onError((err, stack) async {
-        completer.completeError(err, stack);
-        await sub?.cancel();
+        completer.completeError(err as Object, stack as StackTrace?);
+        await sub.cancel();
       });
 
     printDebug(() => 'Message send to isolate: $message');

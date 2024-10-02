@@ -1,18 +1,17 @@
 import 'dart:async';
 
+import 'package:isolate_manager/src/base/contactor/isolate_contactor.dart';
+import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller/isolate_contactor_controller_web.dart';
 import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller/streams.dart';
+import 'package:isolate_manager/src/base/contactor/models/exception.dart';
 import 'package:isolate_manager/src/base/contactor/models/isolate_port.dart';
 import 'package:isolate_manager/src/base/contactor/models/isolate_state.dart';
-
-import '../../isolate_contactor.dart';
-import '../../models/exception.dart';
-import '../isolate_contactor_controller_web.dart';
 
 class IsolateContactorControllerImplFuture<R, P>
     with Streams<R, P>
     implements IsolateContactorControllerImpl<R, P> {
-  final StreamController _delegate;
-  late final StreamSubscription _delegateSubscription;
+  final StreamController<(IsolatePort, dynamic)> _delegate;
+  late final StreamSubscription<(IsolatePort, dynamic)> _delegateSubscription;
 
   @override
   final void Function()? onDispose;
@@ -25,20 +24,20 @@ class IsolateContactorControllerImplFuture<R, P>
     dynamic params, {
     required this.onDispose,
     required this.converter,
-    required IsolateConverter<R> workerConverter,
-  })  : _delegate = params is List
-            ? params.last.controller as StreamController
-            : params,
+    // required IsolateConverter<R> workerConverter,
+  })  : _delegate = params is List<IsolateContactorControllerImplFuture>
+            ? params.last.controller
+            : params as StreamController<(IsolatePort, dynamic)>,
         _initialParams = params is List ? params.first : null {
     _delegateSubscription = _delegate.stream.listen(handleDelegate);
   }
 
   @override
-  dynamic useConverter(dynamic value) => converter.call(value);
+  R useConverter(dynamic value) => converter.call(value);
 
   /// Get this StreamController
   @override
-  StreamController get controller => _delegate;
+  StreamController<(IsolatePort, dynamic)> get controller => _delegate;
 
   /// Get initial params for `createCustom`
   @override

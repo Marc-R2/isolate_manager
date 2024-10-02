@@ -229,9 +229,10 @@ class IsolateManager<R, P> {
     _startedCompleter = Completer();
     queueStrategy.clear();
     await Future.wait(
-        [for (IsolateContactor isolate in _isolates.keys) isolate.dispose()]);
+      [for (final isolate in _isolates.keys) isolate.dispose()],
+    );
     _isolates.clear();
-    _streamSubscription?.cancel();
+    await _streamSubscription?.cancel();
   }
 
   /// Stop the isolate.
@@ -366,25 +367,29 @@ class IsolateManager<R, P> {
     // Mark the current isolate as busy.
     _isolates[isolate] = true;
 
-    StreamSubscription? sub;
-    sub = isolate.onMessage.listen((event) async {
-      if (await queue.callCallback(event)) {
-        sub?.cancel();
+    late final StreamSubscription<R> sub;
+    sub = isolate.onMessage.listen(
+      (event) async {
+        if (await queue.callCallback(event)) {
+          await sub.cancel();
+          // Mark the current isolate as free.
+          _isolates[isolate] = false;
+          // Send the result back to the main app.
+          _eventStreamController.sink.add(event);
+          queue.completer.complete(event);
+        }
+      },
+      onError: (e, s) {
+        sub.cancel();
         // Mark the current isolate as free.
         _isolates[isolate] = false;
-        // Send the result back to the main app.
-        _eventStreamController.sink.add(event);
-        queue.completer.complete(event);
-      }
-    }, onError: (error, stackTrace) {
-      sub?.cancel();
-      // Mark the current isolate as free.
-      _isolates[isolate] = false;
 
-      // Send the exception back to the main app.
-      _eventStreamController.sink.addError(error!, stackTrace);
-      queue.completer.completeError(error, stackTrace);
-    });
+        // Send the exception back to the main app.
+        final (error, stackTrace) = (e as Object, s as StackTrace?);
+        _eventStreamController.sink.addError(error, stackTrace);
+        queue.completer.completeError(error, stackTrace);
+      },
+    );
 
     try {
       await isolate.sendMessage(queue.params);

@@ -85,9 +85,9 @@ Future<void> generate(ArgResults argResults, List<String> dartArgs) async {
 }
 
 Future<Map<String, String>> _getAndGenerateFromAnotatedFunctions(
-    List<dynamic> params) async {
-  String filePath = params[0];
-
+  List<dynamic> params,
+) async {
+  final filePath = params[0] as String;
   return _getAnotatedFunctions(filePath);
 }
 

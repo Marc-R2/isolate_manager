@@ -82,20 +82,21 @@ class IsolateManagerFunction {
     );
 
     if (onInitial != null) {
-      final completer = Completer<void>();
-      completer.complete(onInitial(controller, controller.initialParams));
+      final completer = Completer<void>()
+        ..complete(onInitial(controller, controller.initialParams));
       await completer.future;
     }
 
     // Listen to messages received from the main isolate; this code will be called each time
     // you use `compute` or `sendMessage`.
     controller.onIsolateMessage.listen((message) {
-      final completer = Completer();
+      final completer = Completer<R>();
       completer.future.then(
         (value) => autoHandleResult ? controller.sendResult(value) : null,
         onError: autoHandleException
-            ? (err, stack) =>
-                controller.sendResultError(IsolateException(err, stack))
+            ? (err, stack) => controller.sendResultError(
+                  IsolateException(err as Object, stack as StackTrace),
+                )
             : null,
       );
 

@@ -9,7 +9,6 @@ class IsolateSettings<R, P> {
     this.converter,
     this.workerConverter,
     this.workerName = '',
-    QueueStrategy<R, P>? queueStrategy,
     this.isDebug = false,
   })  : _isolateFunction = isolateFunction,
         isCustomIsolate = false,
@@ -27,11 +26,13 @@ class IsolateSettings<R, P> {
 
   /// A default function for using the [IsolateSettings] method.
   static void _defaultIsolateFunction<R, P>(dynamic params) {
-    IsolateManagerFunction.customFunction<R, P>(params,
-        onEvent: (controller, message) {
-      final function = controller.initialParams;
-      return function(message);
-    });
+    IsolateManagerFunction.customFunction<R, P>(
+      params,
+      onEvent: (controller, message) {
+        final function = controller.initialParams as IsolateFunction<R, P>;
+        return function(message);
+      },
+    );
   }
 
   /// Isolate function.

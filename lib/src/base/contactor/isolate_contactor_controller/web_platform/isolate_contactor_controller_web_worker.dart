@@ -76,7 +76,7 @@ class IsolateContactorControllerImplWorker<R, P>
 
   @override
   void sendIsolate(P message) {
-    _delegate.postMessage(message as dynamic);
+    _delegate.postMessage(message as JSAny);
   }
 
   @override

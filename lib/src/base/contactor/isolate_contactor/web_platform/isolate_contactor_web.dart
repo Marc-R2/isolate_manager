@@ -76,7 +76,7 @@ class IsolateContactorInternalFuture<R, P>
       printDebug(
         () => '[Main Stream] Error message received from Future: $err',
       );
-      _mainStreamController.sink.addError(err, stack);
+      _mainStreamController.sink.addError(err as Object, stack as StackTrace?);
     });
 
     _isolateFunction([_isolateParam, _isolateContactorController]);
@@ -115,16 +115,16 @@ class IsolateContactorInternalFuture<R, P>
     }
 
     final Completer<R> completer = Completer();
-    StreamSubscription? sub;
+    late final StreamSubscription<R> sub;
     sub = _isolateContactorController.onMessage.listen((result) async {
       if (!completer.isCompleted) {
         completer.complete(result);
-        await sub?.cancel();
+        await sub.cancel();
       }
     })
       ..onError((err, stack) async {
-        completer.completeError(err, stack);
-        await sub?.cancel();
+        completer.completeError(err as Object, stack as StackTrace?);
+        await sub.cancel();
       });
 
     printDebug(() => 'Message send to isolate: $message');

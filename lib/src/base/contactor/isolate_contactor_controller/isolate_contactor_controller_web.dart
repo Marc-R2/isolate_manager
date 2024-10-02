@@ -1,11 +1,10 @@
 import 'dart:async';
 
+import 'package:isolate_manager/src/base/contactor/isolate_contactor.dart';
+import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller.dart';
+import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller/web_platform/isolate_contactor_controller_web.dart';
+import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller/web_platform/isolate_contactor_controller_web_worker.dart';
 import 'package:isolate_manager/src/base/contactor/models/isolate_contactor_controller_web_controller_mixin.dart';
-
-import '../isolate_contactor.dart';
-import '../isolate_contactor_controller.dart';
-import 'web_platform/isolate_contactor_controller_web.dart';
-import 'web_platform/isolate_contactor_controller_web_worker.dart';
 
 abstract class IsolateContactorControllerImpl<R, P>
     with IsolateContactorControllerWebControllerMixin
@@ -23,7 +22,7 @@ abstract class IsolateContactorControllerImpl<R, P>
         params,
         onDispose: onDispose,
         converter: converter,
-        workerConverter: workerConverter,
+        // workerConverter: workerConverter,
       );
     }
 

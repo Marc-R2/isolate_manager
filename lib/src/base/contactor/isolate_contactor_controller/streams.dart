@@ -46,14 +46,14 @@ mixin Streams<R, P> {
     _mainStreamController.add(useConverter(value));
   }
 
-  dynamic useConverter(dynamic value);
+  R useConverter(dynamic value);
 
   void _handelDelegateIsolate(dynamic value) {
     if (value == IsolateState.dispose) {
-      if (onDispose != null) onDispose!();
+      onDispose?.call();
       close();
     } else {
-      _isolateStreamController.add(value);
+      _isolateStreamController.add(value as P);
     }
   }
 
