@@ -35,7 +35,7 @@ class _MyAppState extends State<MyApp> {
   )..start();
 
   final isolateIsolateFunction = IsolateManager.fromSettings(
-    IsolateSettings(
+    const IsolateSettings(
       isolateFunction: isolateFunction,
       isDebug: true,
     ),
@@ -43,7 +43,7 @@ class _MyAppState extends State<MyApp> {
   );
 
   final isolateFunctionName = IsolateManager.fromSettings(
-    IsolateSettings(
+    const IsolateSettings(
       isolateFunction: functionName,
       workerName: 'functionName',
       isDebug: true,
@@ -51,7 +51,7 @@ class _MyAppState extends State<MyApp> {
   );
 
   final isolateError = IsolateManager.fromSettings(
-    IsolateSettings(
+    const IsolateSettings(
       isolateFunction: errorFunction,
       isDebug: true,
     ),
@@ -59,7 +59,7 @@ class _MyAppState extends State<MyApp> {
   );
 
   final isolateProgress = IsolateManager<String?, String?>.fromSettings(
-    IsolateSettings.custom(
+    const IsolateSettings.custom(
       isolateFunction: isolateProgressFunction,
       workerName: 'isolateProgressFunction',
       isDebug: true,
@@ -67,7 +67,7 @@ class _MyAppState extends State<MyApp> {
   );
 
   final isolateComplexFunction = IsolateManager.fromSettings(
-    IsolateSettings(
+    const IsolateSettings(
       isolateFunction: complexFunction,
       workerName: 'complexFunction',
       isDebug: true,
@@ -75,7 +75,7 @@ class _MyAppState extends State<MyApp> {
   );
 
   final isolateFetchAndDecode = IsolateManager.fromSettings(
-    IsolateSettings(
+    const IsolateSettings(
       isolateFunction: fetchAndDecode,
       isDebug: true,
     ),
@@ -192,7 +192,7 @@ class _MyAppState extends State<MyApp> {
       });
     }
 
-    await Future.delayed(const Duration(seconds: 3));
+    await Future<void>.delayed(const Duration(seconds: 3));
   }
 
   void callIsolateProgress() async {
