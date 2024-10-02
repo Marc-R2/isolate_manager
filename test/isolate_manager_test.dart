@@ -184,7 +184,7 @@ void main() {
     await isolateManager.start();
 
     await expectLater(
-      () async => await isolateManager.compute([50, 50]),
+      () async => isolateManager.compute([50, 50]),
       throwsStateError,
     );
     await isolateManager.stop();
@@ -198,7 +198,7 @@ void main() {
     await isolateManager.start();
 
     await expectLater(
-      () async => await isolateManager.compute([50, 50]),
+      () async => isolateManager.compute([50, 50]),
       throwsStateError,
     );
     await isolateManager.stop();
@@ -233,7 +233,7 @@ void main() {
     }
 
     await expectLater(
-      () async => await Future.wait(futures, eagerError: true),
+      () async => Future.wait(futures, eagerError: true),
       throwsStateError,
     );
     await isolateManager.stop();
@@ -254,7 +254,7 @@ void main() {
     }
 
     await expectLater(
-      () async => await Future.wait(futures, eagerError: true),
+      () async => Future.wait(futures, eagerError: true),
       throwsStateError,
     );
     await isolateManager.stop();
@@ -273,7 +273,7 @@ void main() {
     }
 
     await expectLater(
-      () async => await Future.wait(futures, eagerError: false),
+      () async => Future.wait(futures, eagerError: false),
       throwsStateError,
     );
     await isolateManager.stop();

@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'isolate_contactor/isolate_contactor_web.dart'
-    if (dart.library.io) 'isolate_contactor/isolate_contactor_stub.dart';
+import 'package:isolate_manager/src/base/contactor/isolate_contactor/isolate_contactor_web.dart'
+    if (dart.library.io) 'package:isolate_manager/src/base/contactor/isolate_contactor/isolate_contactor_stub.dart';
 
 /// The type of the `function` of the `.create` method.
 typedef IsolateFunction<R, P> = FutureOr<R> Function(P params);
@@ -14,6 +14,9 @@ typedef IsolateConverter<R> = R Function(dynamic);
 
 /// This [IsolateContactor] needs [P] as an input param type and [R] as a return type.
 abstract class IsolateContactor<R, P> {
+  /// Constructer.
+  const IsolateContactor(this.debugMode);
+
   /// Use this value to change the prefix debug log.
   ///
   /// Ex: 'Isolate Contactor' => [Isolate Contactor]: there is log.
@@ -21,9 +24,6 @@ abstract class IsolateContactor<R, P> {
 
   /// Debug mode.
   final bool debugMode;
-
-  /// Constructer.
-  const IsolateContactor(this.debugMode);
 
   /// Create an instance with your custom isolate function.
   ///

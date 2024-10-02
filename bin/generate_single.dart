@@ -43,7 +43,7 @@ Future<void> generate(ArgResults argResults, List<String> dartArgs) async {
     concurrent: 3,
   )..start();
 
-  List<List<dynamic>> params = [];
+  final params = <List<dynamic>>[];
   for (final file in allFiles) {
     if (file is File && file.path.endsWith('.dart')) {
       final filePath = file.absolute.path;
@@ -201,9 +201,7 @@ Future<void> _generateFromAnotatedFunction(
   final outputPath = p.join(output, '$name.$extension');
   final outputFile = File(outputPath);
 
-  if (await outputFile.exists()) {
-    await outputFile.delete();
-  }
+  if (outputFile.existsSync()) outputFile.deleteSync();
 
   final process = Process.run(
     'dart',
@@ -228,7 +226,7 @@ Future<void> _generateFromAnotatedFunction(
 
   final result = await process;
 
-  if (await outputFile.exists()) {
+  if (outputFile.existsSync()) {
     print(
         'Path: ${p.relative(sourceFilePath)} => Function: ${function.key} => Compiled: ${p.relative(outputPath)}');
     if (!isDebug) {
@@ -292,7 +290,7 @@ List<FileSystemEntity> _listAllFiles(
 ) {
   final files = dir.listSync(recursive: false);
 
-  for (FileSystemEntity file in files) {
+  for (final file in files) {
     if (file is File) {
       fileList.add(file);
     } else if (file is Directory) {

@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import '../isolate_contactor.dart';
-import 'web_platform/isolate_contactor_web.dart';
-import 'web_platform/isolate_contactor_web_worker.dart';
+import 'package:isolate_manager/src/base/contactor/isolate_contactor.dart';
+import 'package:isolate_manager/src/base/contactor/isolate_contactor/web_platform/isolate_contactor_web.dart';
+import 'package:isolate_manager/src/base/contactor/isolate_contactor/web_platform/isolate_contactor_web_worker.dart';
 
 abstract class IsolateContactorInternal<R, P> extends IsolateContactor<R, P> {
   /// Constructer.

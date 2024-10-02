@@ -11,9 +11,6 @@ import 'package:web/web.dart';
 /// `onDispose` will be called when the controller is disposed.
 class IsolateManagerControllerImpl<R, P>
     implements IsolateManagerController<R, P> {
-  /// Delegation of IsolateContactor.
-  final IsolateContactorController<R, P> _delegate;
-
   /// This method only use to create a custom isolate.
   ///
   /// The [params] is a default parameter of a custom isolate function.
@@ -26,6 +23,9 @@ class IsolateManagerControllerImpl<R, P>
                 params as DedicatedWorkerGlobalScope,
               )
             : IsolateContactorController<R, P>(params, onDispose: onDispose);
+
+  /// Delegation of IsolateContactor.
+  final IsolateContactorController<R, P> _delegate;
 
   /// Mark the isolate as initialized.
   ///
@@ -58,14 +58,14 @@ class IsolateManagerControllerImpl<R, P>
 
 class _IsolateManagerWorkerController<R, P>
     implements IsolateContactorController<R, P> {
-  final DedicatedWorkerGlobalScope self;
-  final _streamController = StreamController<P>.broadcast();
-
   _IsolateManagerWorkerController(this.self) {
     self.onmessage = (MessageEvent event) {
       _streamController.sink.add(event.data as P);
     }.toJS;
   }
+
+  final DedicatedWorkerGlobalScope self;
+  final _streamController = StreamController<P>.broadcast();
 
   @override
   Stream<P> get onIsolateMessage => _streamController.stream;

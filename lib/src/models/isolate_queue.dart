@@ -4,14 +4,14 @@ import 'package:isolate_manager/src/isolate_manager.dart';
 
 /// Use for queuing your `compute`.
 abstract class IsolateQueue<R, P> {
+  /// Use for queuing your `compute`.
+  IsolateQueue(this.params, this.callback);
+
   /// Control the params of this `IsolateQueue`.
   final P params;
 
   /// Control when to return the needed result.
   final IsolateCallback<R>? callback;
-
-  /// Use for queuing your `compute`.
-  IsolateQueue(this.params, this.callback);
 
   FutureOr<bool> callCallback(R event) {
     final callback = this.callback;

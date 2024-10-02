@@ -1,34 +1,16 @@
 import 'dart:async';
 import 'dart:js_interop';
 
+import 'package:isolate_manager/src/base/contactor/isolate_contactor.dart';
+import 'package:isolate_manager/src/base/contactor/isolate_contactor/isolate_contactor_web.dart';
+import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller.dart';
+import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller/isolate_contactor_controller_web.dart';
+import 'package:isolate_manager/src/base/contactor/models/exception.dart';
 import 'package:isolate_manager/src/base/contactor/models/isolate_state.dart';
 import 'package:web/web.dart';
 
-import '../../isolate_contactor.dart';
-import '../../isolate_contactor_controller.dart';
-import '../../isolate_contactor_controller/isolate_contactor_controller_web.dart';
-import '../../models/exception.dart';
-import '../isolate_contactor_web.dart';
-
 class IsolateContactorInternalWorker<R, P>
     extends IsolateContactorInternal<R, P> {
-  /// Check for current cumputing state in enum with listener
-  final StreamController<R> _mainStreamController =
-      StreamController.broadcast();
-
-  /// Listener for result
-  IsolateContactorController<R, P>? _isolateContactorController;
-
-  // final _isolateWorker = Worker("isolate.dart.js");
-
-  /// Control the function of isolate
-  // ignore: unused_field
-  final void Function(dynamic) _isolateFunction;
-
-  /// Control the parameters of isolate
-  // ignore: unused_field
-  final dynamic _isolateParam;
-
   /// Create an instance
   IsolateContactorInternalWorker._({
     required CustomIsolateFunction isolateFunction,
@@ -48,6 +30,23 @@ class IsolateContactorInternalWorker<R, P>
           onDispose: null,
         ),
         super(debugMode);
+
+  /// Check for current cumputing state in enum with listener
+  final StreamController<R> _mainStreamController =
+      StreamController.broadcast();
+
+  /// Listener for result
+  IsolateContactorController<R, P>? _isolateContactorController;
+
+  // final _isolateWorker = Worker("isolate.dart.js");
+
+  /// Control the function of isolate
+  // ignore: unused_field
+  final void Function(dynamic) _isolateFunction;
+
+  /// Control the parameters of isolate
+  // ignore: unused_field
+  final dynamic _isolateParam;
 
   /// Create modified isolate function
   static Future<IsolateContactorInternalWorker<R, P>> createCustom<R, P>({

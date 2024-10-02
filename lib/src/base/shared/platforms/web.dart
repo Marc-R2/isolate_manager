@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:isolate_manager/isolate_manager.dart';
 
-import '../function.dart';
+import 'package:isolate_manager/src/base/shared/function.dart';
 
 /// Web platform does not need to use the `function`
 Future<R> platformExecuteImpl<R extends Object, P extends Object>({

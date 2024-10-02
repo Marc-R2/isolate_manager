@@ -1,27 +1,14 @@
 import 'dart:async';
 import 'dart:js_interop';
 
+import 'package:isolate_manager/src/base/contactor/isolate_contactor.dart';
+import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller/isolate_contactor_controller_web.dart';
+import 'package:isolate_manager/src/base/contactor/models/exception.dart';
 import 'package:isolate_manager/src/base/contactor/models/isolate_state.dart';
 import 'package:web/web.dart';
 
-import '../../isolate_contactor.dart';
-import '../../models/exception.dart';
-import '../isolate_contactor_controller_web.dart';
-
 class IsolateContactorControllerImplWorker<R, P>
     implements IsolateContactorControllerImpl<R, P> {
-  final Worker _delegate;
-
-  final StreamController<R> _mainStreamController =
-      StreamController.broadcast();
-
-  final void Function()? onDispose;
-  final IsolateConverter<R> workerConverter;
-  final dynamic _initialParams;
-
-  @override
-  Completer<void> ensureInitialized = Completer();
-
   IsolateContactorControllerImplWorker(
     dynamic params, {
     required this.onDispose,
@@ -56,6 +43,18 @@ class IsolateContactorControllerImplWorker<R, P>
       _mainStreamController.add(workerConverter(event.data));
     }.toJS;
   }
+
+  final Worker _delegate;
+
+  final StreamController<R> _mainStreamController =
+      StreamController.broadcast();
+
+  final void Function()? onDispose;
+  final IsolateConverter<R> workerConverter;
+  final dynamic _initialParams;
+
+  @override
+  Completer<void> ensureInitialized = Completer();
 
   /// Get this Worker
   @override

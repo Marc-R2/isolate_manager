@@ -28,7 +28,8 @@ const isolateManagerCustomWorker = IsolateManagerWorker();
 /// |-- |-- add.js
 /// ```
 class IsolateManagerWorker {
+  const IsolateManagerWorker([this.name = '']);
+
   /// Name of the Worker JS.
   final String name;
-  const IsolateManagerWorker([this.name = '']);
 }

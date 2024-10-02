@@ -1,27 +1,11 @@
 import 'dart:async';
 
-import '../../../isolate_contactor.dart';
-import '../../isolate_contactor_controller/isolate_contactor_controller_web.dart';
-import '../isolate_contactor_web.dart';
+import 'package:isolate_manager/src/base/contactor/isolate_contactor/isolate_contactor_web.dart';
+import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller/isolate_contactor_controller_web.dart';
+import 'package:isolate_manager/src/base/isolate_contactor.dart';
 
 class IsolateContactorInternalFuture<R, P>
     extends IsolateContactorInternal<R, P> {
-  /// Check for current cumputing state in enum with listener
-  final StreamController<R> _mainStreamController =
-      StreamController.broadcast();
-
-  /// Listener for result
-  final IsolateContactorController<R, P>? _isolateContactorController;
-
-  /// Control the function of isolate
-  final void Function(dynamic) _isolateFunction;
-
-  /// Control the parameters of isolate
-  final dynamic _isolateParam;
-
-  // ignore: unused_field
-  final String _workerName;
-
   /// Create an instance
   IsolateContactorInternalFuture._({
     required CustomIsolateFunction isolateFunction,
@@ -40,6 +24,22 @@ class IsolateContactorInternalFuture<R, P>
           onDispose: null,
         ),
         super(debugMode);
+
+  /// Check for current cumputing state in enum with listener
+  final StreamController<R> _mainStreamController =
+      StreamController.broadcast();
+
+  /// Listener for result
+  final IsolateContactorController<R, P>? _isolateContactorController;
+
+  /// Control the function of isolate
+  final void Function(dynamic) _isolateFunction;
+
+  /// Control the parameters of isolate
+  final dynamic _isolateParam;
+
+  // ignore: unused_field
+  final String _workerName;
 
   /// Create modified isolate function
   static Future<IsolateContactorInternalFuture<R, P>> createCustom<R, P>({

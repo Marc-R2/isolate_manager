@@ -10,16 +10,6 @@ import 'package:isolate_manager/src/base/contactor/models/isolate_state.dart';
 class IsolateContactorControllerImplFuture<R, P>
     with Streams<R, P>
     implements IsolateContactorControllerImpl<R, P> {
-  final StreamController<(IsolatePort, dynamic)> _delegate;
-  late final StreamSubscription<(IsolatePort, dynamic)> _delegateSubscription;
-
-  @override
-  final void Function()? onDispose;
-
-  final IsolateConverter<R> converter;
-
-  final dynamic _initialParams;
-
   IsolateContactorControllerImplFuture(
     dynamic params, {
     required this.onDispose,
@@ -31,6 +21,16 @@ class IsolateContactorControllerImplFuture<R, P>
         _initialParams = params is List ? params.first : null {
     _delegateSubscription = _delegate.stream.listen(handleDelegate);
   }
+
+  final StreamController<(IsolatePort, dynamic)> _delegate;
+  late final StreamSubscription<(IsolatePort, dynamic)> _delegateSubscription;
+
+  @override
+  final void Function()? onDispose;
+
+  final IsolateConverter<R> converter;
+
+  final dynamic _initialParams;
 
   @override
   R useConverter(dynamic value) => converter.call(value);
@@ -63,7 +63,7 @@ class IsolateContactorControllerImplFuture<R, P>
       _delegate.sink.add((IsolatePort.main, exception));
 
   @override
-  Future<void> close() async => await Future.wait([
+  Future<void> close() async => Future.wait([
         _delegate.close(),
         _delegateSubscription.cancel(),
         closeStream(),

@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:isolate_manager/isolate_manager.dart';
 
-import 'base/shared/function.dart';
-import 'isolate_worker/isolate_worker_web.dart'
-    if (dart.library.io) 'isolate_worker/isolate_worker_stub.dart';
+import 'package:isolate_manager/src/base/shared/function.dart';
+import 'package:isolate_manager/src/isolate_worker/isolate_worker_web.dart'
+    if (dart.library.io) 'package:isolate_manager/src/isolate_worker/isolate_worker_stub.dart';
 
 /// A callback for the [IsolateManagerFunction.customFunction] that will be executed only one time
 /// before all events.

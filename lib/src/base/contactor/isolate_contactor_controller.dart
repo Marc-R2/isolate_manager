@@ -1,10 +1,9 @@
 import 'dart:async';
 
+import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller/isolate_contactor_controller_web.dart'
+    if (dart.library.io) 'package:isolate_manager/src/base/contactor/isolate_contactor_controller/isolate_contactor_controller_stub.dart';
+import 'package:isolate_manager/src/base/contactor/models/exception.dart';
 import 'package:isolate_manager/src/base/contactor/models/isolate_state.dart';
-
-import 'isolate_contactor_controller/isolate_contactor_controller_web.dart'
-    if (dart.library.io) 'isolate_contactor_controller/isolate_contactor_controller_stub.dart';
-import 'models/exception.dart';
 
 abstract class IsolateContactorController<R, P> {
   /// Create controller for current `IsolateContactor`

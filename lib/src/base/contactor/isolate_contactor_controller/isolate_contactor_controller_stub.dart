@@ -12,6 +12,20 @@ import 'package:stream_channel/isolate_channel.dart';
 class IsolateContactorControllerImpl<R, P>
     with Streams<R, P>
     implements IsolateContactorController<R, P> {
+  IsolateContactorControllerImpl(
+    dynamic params, {
+    required this.onDispose,
+    required this.converter, // Converter for native
+    required IsolateConverter<R>?
+        workerConverter, // Converter for Worker (Web Only)
+  })  : _delegate = params is List
+            ? IsolateChannel.connectSend(
+                (params as List<Object?>).last! as SendPort)
+            : IsolateChannel.connectReceive(params as ReceivePort),
+        _initialParams = params is List ? params.first : null {
+    _delegateSubscription = _delegate.stream.listen(handleDelegate);
+  }
+
   final IsolateChannel<(IsolatePort, dynamic)> _delegate;
   late final StreamSubscription<(IsolatePort, dynamic)> _delegateSubscription;
 
@@ -21,19 +35,6 @@ class IsolateContactorControllerImpl<R, P>
   final IsolateConverter<R>? converter;
 
   final dynamic _initialParams;
-
-  IsolateContactorControllerImpl(
-    dynamic params, {
-    required this.onDispose,
-    required this.converter, // Converter for native
-    required IsolateConverter<R>?
-        workerConverter, // Converter for Worker (Web Only)
-  })  : _delegate = params is List
-            ? IsolateChannel.connectSend((params as List<Object?>).last! as SendPort)
-            : IsolateChannel.connectReceive(params as ReceivePort),
-        _initialParams = params is List ? params.first : null {
-    _delegateSubscription = _delegate.stream.listen(handleDelegate);
-  }
 
   @override
   R useConverter(dynamic value) => converter?.call(value) ?? (value as R);

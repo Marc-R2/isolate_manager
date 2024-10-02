@@ -1,28 +1,13 @@
 import 'dart:async';
 
 import 'package:isolate_manager/isolate_manager.dart';
+import 'package:isolate_manager/src/base/shared/function.dart';
 import 'package:path/path.dart';
-
-import 'function.dart';
 
 /// Default shared worker name.
 const kSharedWorkerName = r'$shared_worker';
 
 class IsolateManagerShared {
-  /// The instance of the [IsolateManager].
-  final IsolateManager<Object, List<Object>> _manager;
-
-  /// Predefine the mapping between a function and a name of worker function,
-  /// so we can ignore the `workerName` parameter when we compute a function
-  /// multiple times.
-  final Map<Function, String> workerMappings;
-
-  /// Check that the [IsolateManager] is started or not.
-  bool get isStarted => _manager.isStarted;
-
-  /// Ensure that the [IsolateManagerShared] was already started.
-  Future<void> get ensureStarted => _manager.ensureStarted;
-
   /// Create multiple long live isolates for computation. This method can be used
   /// to compute multiple functions.
   ///
@@ -72,6 +57,20 @@ class IsolateManagerShared {
         ) {
     if (autoStart) start();
   }
+
+  /// The instance of the [IsolateManager].
+  final IsolateManager<Object, List<Object>> _manager;
+
+  /// Predefine the mapping between a function and a name of worker function,
+  /// so we can ignore the `workerName` parameter when we compute a function
+  /// multiple times.
+  final Map<Function, String> workerMappings;
+
+  /// Check that the [IsolateManager] is started or not.
+  bool get isStarted => _manager.isStarted;
+
+  /// Ensure that the [IsolateManagerShared] was already started.
+  Future<void> get ensureStarted => _manager.ensureStarted;
 
   /// Compute the given [function] with given [params].
   ///

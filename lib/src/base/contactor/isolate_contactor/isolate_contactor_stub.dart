@@ -1,12 +1,32 @@
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:isolate_manager/src/base/contactor/isolate_contactor.dart';
+import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller/isolate_contactor_controller_stub.dart';
 import 'package:isolate_manager/src/base/contactor/models/isolate_state.dart';
 
-import '../isolate_contactor.dart';
-import '../isolate_contactor_controller/isolate_contactor_controller_stub.dart';
-
 class IsolateContactorInternal<R, P> extends IsolateContactor<R, P> {
+  /// Internal instance
+  IsolateContactorInternal._({
+    required CustomIsolateFunction isolateFunction,
+    required dynamic isolateParam,
+    required String workerName,
+    required IsolateConverter<R> converter,
+    required IsolateConverter<R> workerConverter,
+    required ReceivePort receivePort,
+    bool debugMode = false,
+  })  : _isolateFunction = isolateFunction,
+        _workerName = workerName,
+        _isolateParam = isolateParam,
+        _receivePort = receivePort,
+        _isolateContactorController = IsolateContactorControllerImpl(
+          receivePort,
+          converter: converter,
+          workerConverter: workerConverter,
+          onDispose: null,
+        ),
+        super(debugMode);
+
   /// Create receive port
   final ReceivePort _receivePort;
 
@@ -29,27 +49,6 @@ class IsolateContactorInternal<R, P> extends IsolateContactor<R, P> {
   /// Only for web platform
   // ignore: unused_field
   final String _workerName;
-
-  /// Internal instance
-  IsolateContactorInternal._({
-    required CustomIsolateFunction isolateFunction,
-    required dynamic isolateParam,
-    required String workerName,
-    required IsolateConverter<R> converter,
-    required IsolateConverter<R> workerConverter,
-    required ReceivePort receivePort,
-    bool debugMode = false,
-  })  : _isolateFunction = isolateFunction,
-        _workerName = workerName,
-        _isolateParam = isolateParam,
-        _receivePort = receivePort,
-        _isolateContactorController = IsolateContactorControllerImpl(
-          receivePort,
-          converter: converter,
-          workerConverter: workerConverter,
-          onDispose: null,
-        ),
-        super(debugMode);
 
   /// Create an instance with your own function
   static Future<IsolateContactorInternal<R, P>> createCustom<R, P>({

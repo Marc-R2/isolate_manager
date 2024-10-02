@@ -11,6 +11,16 @@ import 'package:isolate_manager/src/models/isolate_queue.dart';
 ///   - [QueueStrategyRemoveOldest]
 ///   - [QueueStrategyDiscardIncoming]
 abstract class QueueStrategy<R, P> {
+  /// Strategy to control a new (incoming) computation if the maximum number of Queues
+  /// is reached. The maximum number is unlimited if [maxCount] <= 0 (by default).
+  ///
+  /// Some of strategies:
+  ///   - [QueueStrategyUnlimited] is default.
+  ///   - [QueueStrategyRemoveNewest]
+  ///   - [QueueStrategyRemoveOldest]
+  ///   - [QueueStrategyDiscardIncoming]
+  QueueStrategy({this.maxCount = 0});
+
   /// Queue of isolates.
   final Queue<IsolateQueue<R, P>> queues = Queue();
 
@@ -21,16 +31,6 @@ abstract class QueueStrategy<R, P> {
 
   /// Number of the current queues.
   int get queuesCount => queues.length;
-
-  /// Strategy to control a new (incoming) computation if the maximum number of Queues
-  /// is reached. The maximum number is unlimited if [maxCount] <= 0 (by default).
-  ///
-  /// Some of strategies:
-  ///   - [QueueStrategyUnlimited] is default.
-  ///   - [QueueStrategyRemoveNewest]
-  ///   - [QueueStrategyRemoveOldest]
-  ///   - [QueueStrategyDiscardIncoming]
-  QueueStrategy({this.maxCount = 0});
 
   /// Run this method before adding a new computation to the Queue if the max
   /// queue count is exceeded. If this method returns `false`, the new computation

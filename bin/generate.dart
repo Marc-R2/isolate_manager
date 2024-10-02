@@ -6,7 +6,7 @@ import 'generate_single.dart' as single;
 
 void main(List<String> args) async {
   final separator = args.indexOf('--');
-  List<String> dartArgs = [];
+  var dartArgs = <String>[];
   if (separator != -1) {
     dartArgs = args.sublist(separator + 1);
     args = args.sublist(0, separator);

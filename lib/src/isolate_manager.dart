@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:isolate_manager/isolate_manager.dart';
 
-import 'base/isolate_contactor.dart';
-import 'models/isolate_queue.dart';
+import 'package:isolate_manager/src/base/isolate_contactor.dart';
+import 'package:isolate_manager/src/models/isolate_queue.dart';
 
 /// Type for the callback of the isolate.
 typedef IsolateCallback<R> = FutureOr<bool> Function(R value);
@@ -13,37 +13,6 @@ typedef IsolateCustomFunction = IsolateFunction<void, dynamic>;
 
 /// Create new [IsolateManager] instance by using [IsolateManager.fromSettings]
 class IsolateManager<R, P> {
-  /// Debug logs prefix.
-  static String debugLogPrefix = 'Isolate Manager';
-
-  /// Target Number of concurrent isolates.
-  int _concurrent;
-
-  /// Get Target Number of concurrent isolates.
-  int get concurrent => _concurrent;
-
-  /// Get value as stream.
-  Stream<R> get eventStream => _eventStreamController.stream;
-
-  /// Get current number of queues.
-  int get queuesLength => queueStrategy.queuesCount;
-
-  /// Strategy to control a new (incoming) computation.
-  ///
-  /// Basic strategies:
-  ///   - [QueueStrategyUnlimited] - default.
-  ///   - [QueueStrategyRemoveNewest]
-  ///   - [QueueStrategyRemoveOldest]
-  ///   - [QueueStrategyDiscardIncoming]
-  final QueueStrategy<R, P> queueStrategy;
-
-  /// If you want to call the [start] method manually without `await`, you can `await`
-  /// later by using [ensureStarted] to ensure that all the isolates are started.
-  Future<void> get ensureStarted => _startedCompleter.future;
-
-  /// To check if the [start] method is completed or not.
-  bool get isStarted => _startedCompleter.isCompleted;
-
   /// An easy way to create a new isolate.
   IsolateManager.fromSettings(
     this.settings, {
@@ -104,6 +73,37 @@ class IsolateManager<R, P> {
       );
 
   final IsolateSettings<R, P> settings;
+
+  /// Debug logs prefix.
+  static String debugLogPrefix = 'Isolate Manager';
+
+  /// Target Number of concurrent isolates.
+  int _concurrent;
+
+  /// Get Target Number of concurrent isolates.
+  int get concurrent => _concurrent;
+
+  /// Get value as stream.
+  Stream<R> get eventStream => _eventStreamController.stream;
+
+  /// Get current number of queues.
+  int get queuesLength => queueStrategy.queuesCount;
+
+  /// Strategy to control a new (incoming) computation.
+  ///
+  /// Basic strategies:
+  ///   - [QueueStrategyUnlimited] - default.
+  ///   - [QueueStrategyRemoveNewest]
+  ///   - [QueueStrategyRemoveOldest]
+  ///   - [QueueStrategyDiscardIncoming]
+  final QueueStrategy<R, P> queueStrategy;
+
+  /// If you want to call the [start] method manually without `await`, you can `await`
+  /// later by using [ensureStarted] to ensure that all the isolates are started.
+  Future<void> get ensureStarted => _startedCompleter.future;
+
+  /// To check if the [start] method is completed or not.
+  bool get isStarted => _startedCompleter.isCompleted;
 
   /// Create multiple long live isolates for computation. This method can be used
   /// to compute multiple functions.
@@ -208,13 +208,12 @@ class IsolateManager<R, P> {
     final waiting = <Future<void>>[];
 
     if (concurrent > _isolates.length) {
-      for (int i = 0; i < concurrent - _isolates.length; i++) {
+      for (var i = 0; i < concurrent - _isolates.length; i++) {
         final isolate = settings.createIsolateContactor();
-        waiting.add(isolate);
-        isolate.then((value) => _isolates.addAll({value: false}));
+        waiting.add(isolate.then((value) => _isolates.addAll({value: false})));
       }
     } else {
-      for (int i = 0; i < _isolates.length - concurrent; i++) {
+      for (var i = 0; i < _isolates.length - concurrent; i++) {
         final isolate = _isolates.keys.last;
         _isolates.remove(isolate);
         waiting.add(isolate.dispose());
