@@ -14,8 +14,11 @@ class IsolateContactorControllerImplFuture<R, P>
   final StreamController _delegate;
   late final StreamSubscription _delegateSubscription;
 
+  @override
   final void Function()? onDispose;
+
   final IsolateConverter<R> converter;
+
   final dynamic _initialParams;
 
   IsolateContactorControllerImplFuture(
