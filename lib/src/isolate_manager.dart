@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:isolate_manager/isolate_manager.dart';
 
 import 'package:isolate_manager/src/base/isolate_contactor.dart';
+import 'package:isolate_manager/src/base/shared/function.dart';
 import 'package:isolate_manager/src/models/isolate_queue.dart';
 
 /// Type for the callback of the isolate.
@@ -141,7 +142,7 @@ class IsolateManager<R, P> {
     bool autoStart = true,
     String subPath = '',
     int maxQueueCount = 0,
-    QueueStrategy<Object, List<Object>>? queueStrategy,
+    QueueStrategy<Object, IsolateParamsFunc<Object, dynamic>>? queueStrategy,
     bool isDebug = false,
   }) =>
       IsolateManagerShared(

@@ -43,7 +43,7 @@ class IsolateManagerShared {
     this.workerMappings = const {},
     bool autoStart = true,
     String subPath = '',
-    QueueStrategy<Object, List<Object>>? queueStrategy,
+    QueueStrategy<Object, IsolateParamsFunc<Object, dynamic>>? queueStrategy,
     bool isDebug = false,
   }) : _manager = IsolateManager.fromSettings(
           IsolateSettings(
@@ -59,7 +59,7 @@ class IsolateManagerShared {
   }
 
   /// The instance of the [IsolateManager].
-  final IsolateManager<Object, List<Object>> _manager;
+  final IsolateManager<Object, IsolateParamsFunc<Object, dynamic>> _manager;
 
   /// Predefine the mapping between a function and a name of worker function,
   /// so we can ignore the `workerName` parameter when we compute a function

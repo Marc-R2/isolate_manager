@@ -6,7 +6,7 @@ import 'package:isolate_manager/src/base/shared/function.dart';
 
 /// Web platform does not need to use the `function`
 Future<R> platformExecuteImpl<R extends Object, P extends Object>({
-  required IsolateManager<Object, Object> manager,
+  required IsolateManager<Object, IsolateParams<Object, dynamic>> manager,
   required IsolateFunction<R, P> function,
   required P params,
   required String? workerFunction,
@@ -20,14 +20,20 @@ Future<R> platformExecuteImpl<R extends Object, P extends Object>({
         'so `Future` will be used instead');
   }
 
-  final func = (isWorker && workerFunction != null) ? workerFunction : function;
-  final finalParams = workerParams ?? params;
-  return (await manager.compute([func, finalParams], priority: priority)) as R;
+  final finalParams = (workerParams ?? params) as P;
+
+  // ignore: omit_local_variable_types
+  final IsolateParams<R, P> func = (isWorker && workerFunction != null)
+      ? IsolateParamsRef<R, P>(workerFunction, finalParams)
+      : IsolateParamsFunc<R, P>(function, finalParams);
+
+  return (await manager.compute(func, priority: priority)) as R;
 }
 
 /// Create a Worker on Web.
 void workerFunctionImpl(Map<String, Function> map) {
-  IsolateManagerFunction.workerFunction((List<Object> message) {
-    return internalFunction([map[message[0]]!, message[1]]);
+  IsolateManagerFunction.workerFunction((IsolateParamsRef<dynamic, dynamic> message) {
+    final func = map[message.func]! as Object Function(dynamic);
+    return internalFunction(IsolateParamsFunc(func, message.params));
   });
 }
