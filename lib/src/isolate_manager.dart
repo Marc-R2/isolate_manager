@@ -194,37 +194,24 @@ class IsolateManager<R, P> {
     // Mark as the `start()` is starting.
     _isStarting = true;
 
-    if (isCustomIsolate) {
-      // Create the custom isolates.
-      await Future.wait(
-        [
-          for (int i = 0; i < concurrent; i++)
-            IsolateContactor.createCustom<R, P>(
-              isolateFunction as IsolateCustomFunction,
-              workerName: workerName,
-              initialParams: initialParams,
-              converter: converter,
-              workerConverter: workerConverter,
-              debugMode: isDebug,
-            ).then((value) => _isolates.addAll({value: false}))
-        ],
-      );
-    } else {
-      // Create isolates with the internal method.
-      await Future.wait(
-        [
-          for (int i = 0; i < concurrent; i++)
-            IsolateContactor.createCustom<R, P>(
-              _defaultIsolateFunction<R, P>,
-              initialParams: isolateFunction as IsolateFunction<R, P>,
-              workerName: workerName,
-              converter: converter,
-              workerConverter: workerConverter,
-              debugMode: isDebug,
-            ).then((value) => _isolates.addAll({value: false}))
-        ],
-      );
-    }
+    final (isolateFunctionData, initialParamsData) = switch (isCustomIsolate) {
+      true => (isolateFunction as IsolateCustomFunction, initialParams),
+      false => (_defaultIsolateFunction<R, P>, this.isolateFunction),
+    };
+
+    await Future.wait(
+      [
+        for (int i = 0; i < concurrent; i++)
+          IsolateContactor.createCustom<R, P>(
+            isolateFunctionData,
+            workerName: workerName,
+            initialParams: initialParamsData,
+            converter: converter,
+            workerConverter: workerConverter,
+            debugMode: isDebug,
+          ).then((value) => _isolates.addAll({value: false})),
+      ],
+    );
 
     _streamSubscription = _streamController.stream.listen((result) {
       _excuteQueue();
