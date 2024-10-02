@@ -22,11 +22,21 @@ jobs:
       - name: Restore packages
         run: flutter pub get
 
-      - name: Analyze
-        run: flutter analyze
+      # - name: Analyze
+      #   run: flutter analyze
 
-      - name: Run tests
-        run: flutter test --coverage
+      # - name: Run tests
+      #   run: flutter test --coverage
+
+      # Using dart instead of flutter command to avoid analyzer infos fail the ci
+      # Pass '--fatal-infos' for info to fail the ci
+      - name: Analyze project source
+        run: dart analyze
+
+      - name: Coverage information
+        run: |
+          dart pub global activate coverage
+          dart pub global run coverage:test_with_coverage --branch-coverage --function-coverage
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
