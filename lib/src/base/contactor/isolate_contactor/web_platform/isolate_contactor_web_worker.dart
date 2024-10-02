@@ -78,11 +78,11 @@ class IsolateContactorInternalWorker<R, P>
         () => '[Main Stream] Message received from Worker: $message',
       );
       _mainStreamController.sink.add(message);
-    }).onError((err, stack) {
+    }).onError((Object err, StackTrace? stack) {
       printDebug(
         () => '[Main Stream] Error message received from Worker: $err',
       );
-      _mainStreamController.sink.addError(err as Object, stack as StackTrace?);
+      _mainStreamController.sink.addError(err, stack);
     });
 
     await _isolateContactorController!.ensureInitialized.future;
@@ -125,8 +125,8 @@ class IsolateContactorInternalWorker<R, P>
         await sub.cancel();
       }
     })
-      ..onError((err, stack) async {
-        completer.completeError(err as Object, stack as StackTrace?);
+      ..onError((Object err, StackTrace? stack) async {
+        completer.completeError(err, stack);
         await sub.cancel();
       });
 

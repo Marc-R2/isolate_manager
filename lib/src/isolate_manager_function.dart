@@ -99,8 +99,8 @@ class IsolateManagerFunction {
       completer.future.then(
         (value) => autoHandleResult ? controller.sendResult(value) : null,
         onError: autoHandleException
-            ? (err, stack) => controller.sendResultError(
-                  IsolateException(err as Object, stack as StackTrace),
+            ? (Object err, StackTrace stack) => controller.sendResultError(
+                  IsolateException(err, stack),
                 )
             : null,
       );

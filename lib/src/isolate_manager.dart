@@ -384,15 +384,14 @@ class IsolateManager<R, P> {
           queue.completer.complete(event);
         }
       },
-      onError: (e, s) {
+      onError: (Object err, StackTrace? stack) {
         sub.cancel();
         // Mark the current isolate as free.
         _isolates[isolate] = false;
 
         // Send the exception back to the main app.
-        final (error, stackTrace) = (e as Object, s as StackTrace?);
-        _eventStreamController.sink.addError(error, stackTrace);
-        queue.completer.completeError(error, stackTrace);
+        _eventStreamController.sink.addError(err, stack);
+        queue.completer.completeError(err, stack);
       },
     );
 
