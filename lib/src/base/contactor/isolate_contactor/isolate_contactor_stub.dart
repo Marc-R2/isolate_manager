@@ -14,7 +14,7 @@ class IsolateContactorInternal<R, P> extends IsolateContactor<R, P> {
     required IsolateConverter<R> converter,
     required IsolateConverter<R> workerConverter,
     required ReceivePort receivePort,
-    bool debugMode = false,
+    super.debugMode = false,
   })  : _isolateFunction = isolateFunction,
         _workerName = workerName,
         _isolateParam = isolateParam,
@@ -24,8 +24,7 @@ class IsolateContactorInternal<R, P> extends IsolateContactor<R, P> {
           converter: converter,
           workerConverter: workerConverter,
           onDispose: null,
-        ),
-        super(debugMode);
+        );
 
   /// Create receive port
   final ReceivePort _receivePort;

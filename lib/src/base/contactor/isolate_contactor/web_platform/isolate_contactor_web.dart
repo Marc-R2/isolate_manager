@@ -14,7 +14,7 @@ class IsolateContactorInternalFuture<R, P>
     required Object? isolateParam,
     required IsolateConverter<R> converter,
     required IsolateConverter<R> workerConverter,
-    bool debugMode = false,
+    super.debugMode = false,
   })  : _isolateFunction = isolateFunction,
         _workerName = workerName,
         _isolateParam = isolateParam,
@@ -23,8 +23,7 @@ class IsolateContactorInternalFuture<R, P>
           converter: converter,
           workerConverter: workerConverter,
           onDispose: null,
-        ),
-        super(debugMode);
+        );
 
   /// Check for current cumputing state in enum with listener
   final StreamController<R> _mainStreamController =

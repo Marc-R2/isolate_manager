@@ -15,7 +15,7 @@ typedef IsolateConverter<R> = R Function(dynamic);
 /// This [IsolateContactor] needs [P] as an input param type and [R] as a return type.
 abstract class IsolateContactor<R, P> {
   /// Constructer.
-  const IsolateContactor(this.debugMode);
+  const IsolateContactor({required this.debugMode});
 
   /// Use this value to change the prefix debug log.
   ///

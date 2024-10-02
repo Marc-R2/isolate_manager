@@ -19,7 +19,7 @@ class IsolateContactorInternalWorker<R, P>
     required String workerName,
     required IsolateConverter<R> converter,
     required IsolateConverter<R> workerConverter,
-    bool debugMode = false,
+    super.debugMode = false,
   })  : _isolateFunction = isolateFunction,
         _isolateParam = isolateParam,
         _isolateContactorController = IsolateContactorControllerImpl(
@@ -29,8 +29,7 @@ class IsolateContactorInternalWorker<R, P>
           converter: converter,
           workerConverter: workerConverter,
           onDispose: null,
-        ),
-        super(debugMode);
+        );
 
   /// Check for current cumputing state in enum with listener
   final StreamController<R> _mainStreamController =

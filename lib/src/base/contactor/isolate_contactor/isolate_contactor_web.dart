@@ -6,7 +6,7 @@ import 'package:isolate_manager/src/base/contactor/isolate_contactor/web_platfor
 
 abstract class IsolateContactorInternal<R, P> extends IsolateContactor<R, P> {
   /// Constructer.
-  const IsolateContactorInternal(super.debugMode);
+  const IsolateContactorInternal({required super.debugMode});
 
   /// Create modified isolate function
   static Future<IsolateContactorInternal<R, P>> createCustom<R, P>({
