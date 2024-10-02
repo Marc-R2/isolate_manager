@@ -19,8 +19,11 @@ class IsolateManager<R, P> {
   /// Debug logs prefix.
   static String debugLogPrefix = 'Isolate Manager';
 
-  /// Number of concurrent isolates.
-  final int concurrent;
+  /// Target Number of concurrent isolates.
+  int _concurrent;
+
+  /// Get Target Number of concurrent isolates.
+  int get concurrent => _concurrent;
 
   /// Isolate function.
   final Object isolateFunction;
@@ -41,7 +44,7 @@ class IsolateManager<R, P> {
   final bool isDebug;
 
   /// Get value as stream.
-  Stream<R> get stream => _streamController.stream;
+  Stream<R> get eventStream => _eventStreamController.stream;
 
   /// Convert the result received from the isolate before getting real result.
   /// This function useful when the result received from the isolate is different
@@ -78,13 +81,14 @@ class IsolateManager<R, P> {
   IsolateManager.create(
     IsolateFunction<R, P> this.isolateFunction, {
     this.workerName = '',
-    this.concurrent = 1,
+    int concurrent = 1,
     this.converter,
     this.workerConverter,
     QueueStrategy<R, P>? queueStrategy,
     this.isDebug = false,
   })  : isCustomIsolate = false,
         initialParams = '',
+        _concurrent = concurrent,
         queueStrategy = queueStrategy ?? QueueStrategyUnlimited() {
     // Set the debug log prefix.
     IsolateContactor.debugLogPrefix = debugLogPrefix;
@@ -95,12 +99,13 @@ class IsolateManager<R, P> {
     IsolateCustomFunction this.isolateFunction, {
     this.workerName = '',
     this.initialParams,
-    this.concurrent = 1,
+    int concurrent = 1,
     this.converter,
     this.workerConverter,
     QueueStrategy<R, P>? queueStrategy,
     this.isDebug = false,
   })  : isCustomIsolate = true,
+        _concurrent = concurrent,
         queueStrategy = queueStrategy ?? QueueStrategyUnlimited() {
     // Set the debug log prefix.
     IsolateContactor.debugLogPrefix = debugLogPrefix;
@@ -160,8 +165,10 @@ class IsolateManager<R, P> {
   final Map<IsolateContactor<R, P>, bool> _isolates = {};
 
   /// Controller for stream.
-  final StreamController<R> _streamController = StreamController.broadcast();
+  final StreamController<R> _eventStreamController =
+      StreamController.broadcast();
   StreamSubscription<R>? _streamSubscription;
+
   // final List<StreamSubscription<R>> _streamSubscriptions = [];
 
   /// Is the `start` method is starting.
@@ -183,7 +190,7 @@ class IsolateManager<R, P> {
   /// called when the first `compute()` has been made.
   Future<void> start() async {
     // This instance is stoped.
-    if (_streamController.isClosed) return;
+    if (_eventStreamController.isClosed) return;
 
     // Return here if this method is already completed.
     if (_startedCompleter.isCompleted) return;
@@ -194,35 +201,54 @@ class IsolateManager<R, P> {
     // Mark as the `start()` is starting.
     _isStarting = true;
 
-    final (isolateFunctionData, initialParamsData) = switch (isCustomIsolate) {
-      true => (isolateFunction as IsolateCustomFunction, initialParams),
-      false => (_defaultIsolateFunction<R, P>, this.isolateFunction),
-    };
+    final scaling = scale(concurrent);
 
-    await Future.wait(
-      [
-        for (int i = 0; i < concurrent; i++)
-          IsolateContactor.createCustom<R, P>(
-            isolateFunctionData,
-            workerName: workerName,
-            initialParams: initialParamsData,
-            converter: converter,
-            workerConverter: workerConverter,
-            debugMode: isDebug,
-          ).then((value) => _isolates.addAll({value: false})),
-      ],
-    );
-
-    _streamSubscription = _streamController.stream.listen((result) {
+    _streamSubscription = _eventStreamController.stream.listen((result) {
       _excuteQueue();
     })
       // Needs to put onError here to make the try-catch work properly.
       ..onError((error, stack) {});
 
+    await scaling;
     _excuteQueue();
 
     // Mark the `start()` to be completed.
     _startedCompleter.complete();
+  }
+
+  /// Scale the number of isolates.
+  Future<void> scale(int count) async {
+    assert(count > 0, 'The number of isolates must be greater than 0.');
+    _concurrent = count;
+    if (concurrent > _isolates.length) {
+      final (isolateFunctionData, paramsData) = switch (isCustomIsolate) {
+        true => (isolateFunction as IsolateCustomFunction, initialParams),
+        false => (_defaultIsolateFunction<R, P>, this.isolateFunction),
+      };
+
+      final waiting = <Future<IsolateContactor>>[];
+
+      for (int i = 0; i < concurrent - _isolates.length; i++) {
+        final isolate = IsolateContactor.createCustom<R, P>(
+          isolateFunctionData,
+          workerName: workerName,
+          initialParams: paramsData,
+          converter: converter,
+          workerConverter: workerConverter,
+          debugMode: isDebug,
+        );
+        waiting.add(isolate);
+        isolate.then((value) => _isolates.addAll({value: false}));
+      }
+
+      await Future.wait(waiting);
+    } else {
+      for (int i = 0; i < _isolates.length - concurrent; i++) {
+        final isolate = _isolates.keys.last;
+        _isolates.remove(isolate);
+        await isolate.dispose();
+      }
+    }
   }
 
   /// Stop isolate manager without close streamController.
@@ -239,7 +265,7 @@ class IsolateManager<R, P> {
   /// Stop the isolate.
   Future<void> stop() async {
     await _tempStop();
-    await _streamController.close();
+    await _eventStreamController.close();
   }
 
   /// Restart the isolate.
@@ -321,15 +347,26 @@ class IsolateManager<R, P> {
   ///       return true;
   ///  });
   /// ```
-  Future<R> compute(P params,
-      {IsolateCallback<R>? callback, bool priority = false}) async {
+  Future<R> compute(
+    P params, {
+    IsolateCallback<R>? callback,
+    bool priority = false,
+  }) async {
     await start();
 
-    final queue = IsolateQueue<R, P>(params, callback);
+    final queue = ComputeTask<R, P>(params, callback);
     queueStrategy.add(queue, addToTop: priority);
     _excuteQueue();
 
     return queue.completer.future;
+  }
+
+  Stream<R> stream(P params, {IsolateCallback<R>? callback}) {
+    final queue = StreamTask<R, P>(params, callback);
+    queueStrategy.add(queue);
+    _excuteQueue();
+
+    return queue.stream;
   }
 
   /// Exccute the element in the queues.
@@ -339,36 +376,32 @@ class IsolateManager<R, P> {
       /// Allow calling `compute` before `start`.
       if (queueStrategy.hasNext() && _isolates[isolate] == false) {
         final queue = queueStrategy.getNext();
-        _excute(isolate, queue);
+        _execute(isolate, queue);
       }
     }
   }
 
   /// Send and recieve value.
-  Future<R> _excute(IsolateContactor<R, P> isolate, IsolateQueue<R, P> queue) {
-    if (queue.callback != null) {
-      return _excuteWithCallback(isolate, queue);
-    } else {
-      return _excuteWithoutCallback(isolate, queue);
-    }
+  Future<R> _execute(IsolateContactor<R, P> isolate, IsolateQueue<R, P> queue) {
+    if (queue is ComputeTask<R, P>) return _executeCompute(isolate, queue);
+    throw UnimplementedError();
   }
 
-  Future<R> _excuteWithCallback(
-      IsolateContactor<R, P> isolate, IsolateQueue<R, P> queue) async {
+  Future<R> _executeCompute(
+    IsolateContactor<R, P> isolate,
+    ComputeTask<R, P> queue,
+  ) async {
     // Mark the current isolate as busy.
     _isolates[isolate] = true;
 
     StreamSubscription? sub;
     sub = isolate.onMessage.listen((event) async {
-      // Callbacks on every event.
-      final completer = Completer<bool>();
-      completer.complete(queue.callback!(event));
-      if (await completer.future) {
+      if (await queue.callCallback(event)) {
         sub?.cancel();
         // Mark the current isolate as free.
         _isolates[isolate] = false;
         // Send the result back to the main app.
-        _streamController.sink.add(event);
+        _eventStreamController.sink.add(event);
         queue.completer.complete(event);
       }
     }, onError: (error, stackTrace) {
@@ -377,7 +410,7 @@ class IsolateManager<R, P> {
       _isolates[isolate] = false;
 
       // Send the exception back to the main app.
-      _streamController.sink.addError(error!, stackTrace);
+      _eventStreamController.sink.addError(error!, stackTrace);
       queue.completer.completeError(error, stackTrace);
     });
 
@@ -386,31 +419,6 @@ class IsolateManager<R, P> {
     } catch (_, __) {
       /* Do not need to catch the Exception here because it's catched in the above Stream */
     }
-
-    return queue.completer.future;
-  }
-
-  Future<R> _excuteWithoutCallback(
-      IsolateContactor<R, P> isolate, IsolateQueue<R, P> queue) async {
-    // Mark the current isolate as busy.
-    _isolates[isolate] = true;
-
-    // Send the `param` to the isolate and wait for the result.
-    isolate.sendMessage(queue.params).then((value) {
-      // Mark the current isolate as free.
-      _isolates[isolate] = false;
-
-      // Send the result back to the main app.
-      _streamController.sink.add(value);
-      queue.completer.complete(value);
-    }).onError((error, stackTrace) {
-      // Mark the current isolate as free.
-      _isolates[isolate] = false;
-
-      // Send the exception back to the main app.
-      _streamController.sink.addError(error!, stackTrace);
-      queue.completer.completeError(error, stackTrace);
-    });
 
     return queue.completer.future;
   }

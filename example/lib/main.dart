@@ -255,7 +255,7 @@ class _MyAppState extends State<MyApp> {
                           title: Column(
                             children: [
                               StreamBuilder(
-                                stream: isolateIsolateFunction.stream,
+                                stream: isolateIsolateFunction.eventStream,
                                 builder: (context, snapshot) {
                                   if (!snapshot.hasData) {
                                     isolateIsolateFunction.sendMessage(value2);
@@ -310,7 +310,7 @@ class _MyAppState extends State<MyApp> {
                           title: Column(
                             children: [
                               StreamBuilder(
-                                stream: isolateFunctionName.stream,
+                                stream: isolateFunctionName.eventStream,
                                 builder: (context, snapshot) {
                                   if (!snapshot.hasData) {
                                     isolateFunctionName
@@ -362,7 +362,7 @@ class _MyAppState extends State<MyApp> {
                         title: ElevatedButton(
                           onPressed: callIsolateProgress,
                           child: StreamBuilder(
-                            stream: isolateProgress.stream,
+                            stream: isolateProgress.eventStream,
                             builder: (_, snapshot) {
                               if (!snapshot.hasData) {
                                 return const Text('Isolate Progress');
@@ -380,7 +380,7 @@ class _MyAppState extends State<MyApp> {
                         title: ElevatedButton(
                           onPressed: calculateComplexFunction,
                           child: StreamBuilder(
-                            stream: isolateComplexFunction.stream,
+                            stream: isolateComplexFunction.eventStream,
                             builder: (_, snapshot) {
                               if (!snapshot.hasData) {
                                 return const Text('Isolate Complex Parameters');
@@ -401,7 +401,7 @@ class _MyAppState extends State<MyApp> {
                           title: ElevatedButton(
                             onPressed: callFetchAndDecode,
                             child: StreamBuilder(
-                              stream: isolateFetchAndDecode.stream,
+                              stream: isolateFetchAndDecode.eventStream,
                               builder: (_, snapshot) {
                                 if (!snapshot.hasData) {
                                   return const Text('Isolate Fetch And Decode');

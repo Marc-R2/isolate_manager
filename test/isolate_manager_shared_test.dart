@@ -16,7 +16,7 @@ void main() async {
       subPath: 'workers',
     );
 
-    isolates.stream.listen((result) {
+    isolates.eventStream.listen((result) {
       if (result is double) {
         // print('Stream get addFuture: $result');
       } else if (result is String) {
@@ -67,7 +67,7 @@ void main() async {
       },
     );
 
-    isolates.stream.listen((result) {
+    isolates.eventStream.listen((result) {
       if (result is double) {
         // print('Stream get addFuture: $result');
       } else if (result is String) {
@@ -107,7 +107,7 @@ void main() async {
         IsolateManager.createShared(concurrent: 3, useWorker: true);
 
     // Catch the error from the stream
-    isolates.stream.listen((result) {
+    isolates.eventStream.listen((result) {
       // print('Stream get add: $result');
     }).onError((e) {
       // print('Error from stream: $e');

@@ -75,7 +75,7 @@ void main() {
       initialParams: ['Test initialParams 0', 'Test initialParams 1'],
     )..start();
 
-    isolateManager.stream
+    isolateManager.eventStream
         .listen((value) {})
         // Do not need to catch the error here
         .onError((error) {});
@@ -120,7 +120,7 @@ void main() {
       initialParams: ['Test initialParams 0', 'Test initialParams 1'],
     )..start();
 
-    isolateManager.stream
+    isolateManager.eventStream
         .listen((value) {})
         // Do not need to catch the error here
         .onError((error) {});
@@ -437,7 +437,7 @@ void main() {
     test('QueueStrategyRemoveNewest with unlimited queue count', () {
       final queueStrategies = QueueStrategyUnlimited<int, int>();
       for (int i = 0; i < 10; i++) {
-        queueStrategies.add(IsolateQueue<int, int>(i, null));
+        queueStrategies.add(ComputeTask<int, int>(i, null));
       }
       expect(queueStrategies.queuesCount, equals(10));
       expect(queueStrategies.continueIfMaxCountExceeded(), true);
@@ -451,7 +451,7 @@ void main() {
     test('QueueStrategyRemoveNewest with addToTop is true', () {
       final queueStrategies = QueueStrategyUnlimited<int, int>();
       for (int i = 0; i < 10; i++) {
-        queueStrategies.add(IsolateQueue<int, int>(i, null), addToTop: true);
+        queueStrategies.add(ComputeTask<int, int>(i, null), addToTop: true);
       }
       expect(queueStrategies.queuesCount, equals(10));
       final result = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].reversed.toList();
@@ -464,7 +464,7 @@ void main() {
     test('QueueStrategyRemoveNewest', () {
       final queueStrategies = QueueStrategyRemoveNewest<int, int>(maxCount: 3);
       for (int i = 0; i < 10; i++) {
-        queueStrategies.add(IsolateQueue<int, int>(i, null));
+        queueStrategies.add(ComputeTask<int, int>(i, null));
       }
       expect(queueStrategies.queuesCount, equals(3));
       List result = [0, 1, 9];
@@ -477,7 +477,7 @@ void main() {
     test('QueueStrategyRemoveNewest with addToTop is true', () {
       final queueStrategies = QueueStrategyRemoveNewest<int, int>(maxCount: 3);
       for (int i = 0; i < 10; i++) {
-        queueStrategies.add(IsolateQueue<int, int>(i, null), addToTop: true);
+        queueStrategies.add(ComputeTask<int, int>(i, null), addToTop: true);
       }
       expect(queueStrategies.queuesCount, equals(3));
       List result = [9, 8, 7];
@@ -490,7 +490,7 @@ void main() {
     test('QueueStrategyRemoveOldest', () {
       final queueStrategies = QueueStrategyRemoveOldest<int, int>(maxCount: 3);
       for (int i = 0; i < 10; i++) {
-        queueStrategies.add(IsolateQueue<int, int>(i, null));
+        queueStrategies.add(ComputeTask<int, int>(i, null));
       }
       expect(queueStrategies.queuesCount, equals(3));
       List result = [7, 8, 9];
@@ -503,7 +503,7 @@ void main() {
     test('QueueStrategyRemoveOldest with addToTop is true', () {
       final queueStrategies = QueueStrategyRemoveOldest<int, int>(maxCount: 3);
       for (int i = 0; i < 10; i++) {
-        queueStrategies.add(IsolateQueue<int, int>(i, null), addToTop: true);
+        queueStrategies.add(ComputeTask<int, int>(i, null), addToTop: true);
       }
       expect(queueStrategies.queuesCount, equals(3));
       List result = [9, 1, 0];
@@ -517,7 +517,7 @@ void main() {
       final queueStrategies =
           QueueStrategyDiscardIncoming<int, int>(maxCount: 3);
       for (int i = 0; i < 10; i++) {
-        queueStrategies.add(IsolateQueue<int, int>(i, null));
+        queueStrategies.add(ComputeTask<int, int>(i, null));
       }
       expect(queueStrategies.queuesCount, equals(3));
       List result = [0, 1, 2];
@@ -531,7 +531,7 @@ void main() {
       final queueStrategies =
           QueueStrategyDiscardIncoming<int, int>(maxCount: 3);
       for (int i = 0; i < 10; i++) {
-        queueStrategies.add(IsolateQueue<int, int>(i, null), addToTop: true);
+        queueStrategies.add(ComputeTask<int, int>(i, null), addToTop: true);
       }
       expect(queueStrategies.queuesCount, equals(3));
       List result = [2, 1, 0];

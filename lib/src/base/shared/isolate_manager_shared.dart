@@ -136,7 +136,7 @@ class IsolateManagerShared {
   }
 
   /// Get the result as stream.
-  Stream<Object> get stream => _manager.stream;
+  Stream<Object> get eventStream => _manager.eventStream;
 
   /// Start all the isolates. This method is optional because it will be started
   /// automatically when it needs to calculate.
