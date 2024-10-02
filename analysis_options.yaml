@@ -1,4 +1,10 @@
-include: package:lints/recommended.yaml
+# include: package:lints/recommended.yaml
+include: package:very_good_analysis/analysis_options.yaml
+
+analyzer:
+  language:
+    # TODO: Set this language rule to `true`. It is currently disabled to allow JS-Interop using dynamic types.
+    strict-casts: false
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

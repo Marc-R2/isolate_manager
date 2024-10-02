@@ -60,7 +60,7 @@ class _IsolateManagerWorkerController<R, P>
     implements IsolateContactorController<R, P> {
   _IsolateManagerWorkerController(this.self) {
     self.onmessage = (MessageEvent event) {
-      _streamController.sink.add(event.data as P);
+      _streamController.sink.add(event.data as dynamic);
     }.toJS;
   }
 
@@ -76,7 +76,7 @@ class _IsolateManagerWorkerController<R, P>
   /// Send result to the main app
   @override
   void sendResult(dynamic m) {
-    self.postMessage(m as JSAny?);
+    self.postMessage(m);
   }
 
   /// Send error to the main app

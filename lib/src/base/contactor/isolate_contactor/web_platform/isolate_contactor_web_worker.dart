@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:isolate';
-import 'dart:js_interop';
 
 import 'package:isolate_manager/src/base/contactor/isolate_contactor.dart';
 import 'package:isolate_manager/src/base/contactor/isolate_contactor/isolate_contactor_web.dart';
@@ -25,7 +24,7 @@ class IsolateContactorInternalWorker<R, P>
         _isolateContactorController = IsolateContactorControllerImpl(
           // TODO: Change to `'$workerName.js'.toJS` when releasing version `6.0.0` (a new major version).
           // this is a workaround to use a wider range of the package `web` version (>=0.5.1 <2.0.0).
-          Worker('$workerName.js' as JSAny),
+          Worker('$workerName.js' as dynamic),
           converter: converter,
           workerConverter: workerConverter,
           onDispose: null,
