@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:isolate';
 
 import 'package:isolate_manager/src/base/contactor/isolate_contactor/isolate_contactor_web.dart';
 import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller/isolate_contactor_controller_web.dart';
@@ -18,7 +19,7 @@ class IsolateContactorInternalFuture<R, P>
         _workerName = workerName,
         _isolateParam = isolateParam,
         _isolateContactorController = IsolateContactorControllerImpl(
-          StreamController.broadcast(),
+          StreamController<R>.broadcast(),
           converter: converter,
           workerConverter: workerConverter,
           onDispose: null,
