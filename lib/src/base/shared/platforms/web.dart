@@ -3,10 +3,11 @@ import 'dart:async';
 import 'package:isolate_manager/isolate_manager.dart';
 
 import 'package:isolate_manager/src/base/shared/function.dart';
+import 'package:isolate_manager/src/base/shared/isolate_params.dart';
 
 /// Web platform does not need to use the `function`
 Future<R> platformExecuteImpl<R extends Object, P extends Object>({
-  required IsolateManager<Object, IsolateParams<Object, dynamic>> manager,
+  required DefaultIsolateManager manager,
   required IsolateFunction<R, P> function,
   required P params,
   required String? workerFunction,
@@ -32,7 +33,8 @@ Future<R> platformExecuteImpl<R extends Object, P extends Object>({
 
 /// Create a Worker on Web.
 void workerFunctionImpl(Map<String, Function> map) {
-  IsolateManagerFunction.workerFunction((IsolateParamsRef<dynamic, dynamic> message) {
+  IsolateManagerFunction.workerFunction(
+      (IsolateParamsRef<dynamic, dynamic> message) {
     final func = map[message.func]! as Object Function(dynamic);
     return internalFunction(IsolateParamsFunc(func, message.params));
   });

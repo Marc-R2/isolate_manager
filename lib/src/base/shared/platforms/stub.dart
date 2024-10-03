@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:isolate_manager/isolate_manager.dart';
-import 'package:isolate_manager/src/base/shared/function.dart';
+import 'package:isolate_manager/src/base/shared/isolate_params.dart';
 
 /// Execute
 Future<R> platformExecuteImpl<R extends Object, P extends Object>({
-  required IsolateManager<Object, IsolateParams<Object, dynamic>> manager,
+  required DefaultIsolateManager manager,
   required IsolateFunction<R, P> function,
   required P params,
   required String? workerFunction,

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:isolate_manager/isolate_manager.dart';
 
 import 'package:isolate_manager/src/base/isolate_contactor.dart';
-import 'package:isolate_manager/src/base/shared/function.dart';
+import 'package:isolate_manager/src/base/shared/isolate_params.dart';
 import 'package:isolate_manager/src/models/isolate_queue.dart';
 
 /// Type for the callback of the isolate.
@@ -13,7 +13,7 @@ typedef IsolateCallback<R> = FutureOr<bool> Function(R value);
 typedef IsolateCustomFunction = IsolateFunction<void, dynamic>;
 
 /// Create new [IsolateManager] instance by using [IsolateManager.fromSettings]
-class IsolateManager<R, P> {
+abstract class IsolateManager<R, P> {
   /// An easy way to create a new isolate.
   IsolateManager.fromSettings(
     this.settings, {
@@ -36,7 +36,7 @@ class IsolateManager<R, P> {
     QueueStrategy<R, P>? queueStrategy,
     bool isDebug = false,
   }) =>
-      IsolateManager.fromSettings(
+      IsolateManagerCompute(
         IsolateSettings<R, P>(
           isolateFunction: isolateFunction,
           converter: converter,
@@ -60,7 +60,7 @@ class IsolateManager<R, P> {
     QueueStrategy<R, P>? queueStrategy,
     bool isDebug = false,
   }) =>
-      IsolateManager.fromSettings(
+      IsolateManagerCompute(
         IsolateSettings<R, P>.custom(
           isolateFunction: isolateFunction,
           converter: converter,
@@ -190,13 +190,13 @@ class IsolateManager<R, P> {
     final scaling = scale(concurrent);
 
     _streamSubscription = _eventStreamController.stream.listen((result) {
-      _excuteQueue();
+      _executeQueue();
     })
       // Needs to put onError here to make the try-catch work properly.
       ..onError((error, stack) {});
 
     await scaling;
-    _excuteQueue();
+    _executeQueue();
 
     // Mark the `start()` to be completed.
     _startedCompleter.complete();
@@ -283,9 +283,9 @@ class IsolateManager<R, P> {
     P params, {
     IsolateCallback<R>? callback,
     bool priority = false,
-  }) =>
-      compute(params, callback: callback, priority: priority);
+  });
 
+  /*
   ///  Similar to the [compute], for who's using IsolateContactor.
   Future<R> sendMessage(
     P params, {
@@ -293,63 +293,25 @@ class IsolateManager<R, P> {
     bool priority = false,
   }) =>
       compute(params, callback: callback, priority: priority);
+   */
 
-  /// Compute isolate manager with [R] is return type.
-  ///
-  /// You can use [callback] to be able to receive many values before receiving
-  /// the final result that is returned from the [compute] method. The final
-  /// result will be returned when the callback returns `true`. If you want a
-  /// computation runs as soon as possible, you can set the [priority] to `true`
-  /// to promote it to the top of the Queue.
-  ///
-  /// Ex:
-  ///
-  /// Without callback, the first value received from the Isolate is always the
-  /// final value:
-  ///
-  /// ```dart
-  /// final result = await isolate.compute(params); // Get only the first result from the isolate
-  /// ```
-  ///
-  /// With callback, only the `true` value is the final value, so all other values
-  /// is marked as the progress values:
-  ///
-  /// ``` dart
-  /// final result = await isolate.compute(params, (value) {
-  ///       if (value is int) {
-  ///         // Do something here with the value that will be not returned to the `result`.
-  ///         print('progress: $value');
-  ///         return false;
-  ///       }
-  ///
-  ///       // The value is not `int` and will be returned to the `result` as the final result.
-  ///       return true;
-  ///  });
-  /// ```
-  Future<R> compute(
-    P params, {
-    IsolateCallback<R>? callback,
-    bool priority = false,
-  }) async {
+  Future<void> addQueue(IsolateQueue<R, P> queue,
+      {bool addToTop = false}) async {
     await start();
-
-    final queue = ComputeTask<R, P>(params, callback);
-    queueStrategy.add(queue, addToTop: priority);
-    _excuteQueue();
-
-    return queue.completer.future;
+    queueStrategy.add(queue, addToTop: addToTop);
+    _executeQueue();
   }
 
   Stream<R> stream(P params, {IsolateCallback<R>? callback}) {
     final queue = StreamTask<R, P>(params, callback);
     queueStrategy.add(queue);
-    _excuteQueue();
+    _executeQueue();
 
     return queue.stream;
   }
 
-  /// Exccute the element in the queues.
-  void _excuteQueue() {
+  /// Execute the element in the queues.
+  void _executeQueue() {
     printDebug(() => 'Number of queues: ${queueStrategy.queuesCount}');
     for (final isolate in _isolates.keys) {
       /// Allow calling `compute` before `start`.

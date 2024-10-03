@@ -35,7 +35,7 @@ Future<void> generate(ArgResults argResults, List<String> dartArgs) async {
   }
 
   final allFiles = _listAllFiles(Directory(input), []);
-  final isolateManager = IsolateManager.fromSettings(
+  final isolateManager = IsolateManagerCompute(
     const IsolateSettings(
       isolateFunction: _getAndGenerateFromAnotatedFunctions,
     ),

@@ -1,32 +1,9 @@
 import 'dart:async';
 
-import 'package:isolate_manager/isolate_manager.dart';
+import 'package:isolate_manager/src/base/shared/isolate_params.dart';
 
 import 'package:isolate_manager/src/base/shared/platforms/web.dart'
     if (dart.library.io) 'package:isolate_manager/src/base/shared/platforms/stub.dart';
-
-// typedef IsolateParams = (dynamic Function(dynamic), dynamic);
-
-abstract class IsolateParams<R, P> {
-  const IsolateParams(this.funcRaw, this.params);
-
-  final dynamic funcRaw;
-  final P params;
-}
-
-class IsolateParamsFunc<R, P> extends IsolateParams<R, P> {
-  const IsolateParamsFunc(IsolateFunction<R, P> super.func, super.params);
-
-  dynamic Function(P) get func => funcRaw as dynamic Function(P);
-
-  dynamic call() => func(params);
-}
-
-class IsolateParamsRef<R, P> extends IsolateParams<R, P> {
-  const IsolateParamsRef(super.func, super.params);
-
-  String get func => funcRaw as String;
-}
 
 /// Internal function
 Future<Object> internalFunction(IsolateParamsFunc<Object, dynamic> params) {
@@ -40,7 +17,7 @@ Future<Object> internalFunction(IsolateParamsFunc<Object, dynamic> params) {
 
 /// Internal platform execute
 Future<R> platformExecute<R extends Object, P extends Object>({
-  required IsolateManager<Object, IsolateParams<Object, dynamic>> manager,
+  required DefaultIsolateManager manager,
   required FutureOr<R> Function(P) function,
   required P params,
   required String? workerFunction,

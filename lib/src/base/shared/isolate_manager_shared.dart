@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:isolate_manager/isolate_manager.dart';
 import 'package:isolate_manager/src/base/shared/function.dart';
+import 'package:isolate_manager/src/base/shared/isolate_params.dart';
 import 'package:path/path.dart';
 
 /// Default shared worker name.
@@ -45,7 +46,7 @@ class IsolateManagerShared {
     String subPath = '',
     QueueStrategy<Object, IsolateParamsFunc<Object, dynamic>>? queueStrategy,
     bool isDebug = false,
-  }) : _manager = IsolateManager.fromSettings(
+  }) : _manager = IsolateManagerCompute(
           IsolateSettings(
             isolateFunction: internalFunction,
             workerName: useWorker ? join(subPath, kSharedWorkerName) : '',
@@ -127,7 +128,8 @@ class IsolateManagerShared {
     bool priority = false,
   }) async {
     return platformExecute<R, P>(
-      manager: _manager,
+      // TODO: Remove the cast
+      manager: _manager as DefaultIsolateManager,
       function: function,
       params: params,
       workerFunction: workerFunction ?? workerMappings[function],

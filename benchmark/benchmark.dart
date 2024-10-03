@@ -50,7 +50,7 @@ Future<void> execute(int fibonacciNumber) async {
   );
 
   // One Isolate (Worker)
-  final singleIsolate = IsolateManager.fromSettings(settings);
+  final singleIsolate = IsolateManagerCompute(settings);
   await singleIsolate.start();
   stopWatch.start();
   for (var i = 0; i < 70; i++) {
@@ -62,7 +62,7 @@ Future<void> execute(int fibonacciNumber) async {
     ..reset();
 
   // Three Isolates (Workers)
-  final threeIsolates = IsolateManager.fromSettings(
+  final threeIsolates = IsolateManagerCompute(
     settings,
     concurrent: 3,
   );

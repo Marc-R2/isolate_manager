@@ -6,5 +6,8 @@ analyzer:
     # TODO: Set this language rule to `true`. It is currently disabled to allow JS-Interop using dynamic types.
     strict-casts: false
 
+  errors:
+    flutter_style_todos: ignore
+
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

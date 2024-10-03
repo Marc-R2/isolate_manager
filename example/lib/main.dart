@@ -34,7 +34,7 @@ class _MyAppState extends State<MyApp> {
     isDebug: true,
   )..start();
 
-  final isolateIsolateFunction = IsolateManager.fromSettings(
+  final isolateIsolateFunction = IsolateManagerCompute(
     const IsolateSettings(
       isolateFunction: isolateFunction,
       isDebug: true,
@@ -42,7 +42,7 @@ class _MyAppState extends State<MyApp> {
     concurrent: 2,
   );
 
-  final isolateFunctionName = IsolateManager.fromSettings(
+  final isolateFunctionName = IsolateManagerCompute(
     const IsolateSettings(
       isolateFunction: functionName,
       workerName: 'functionName',
@@ -50,7 +50,7 @@ class _MyAppState extends State<MyApp> {
     ),
   );
 
-  final isolateError = IsolateManager.fromSettings(
+  final isolateError = IsolateManagerCompute(
     const IsolateSettings(
       isolateFunction: errorFunction,
       isDebug: true,
@@ -58,7 +58,7 @@ class _MyAppState extends State<MyApp> {
     concurrent: 1,
   );
 
-  final isolateProgress = IsolateManager<String?, String?>.fromSettings(
+  final isolateProgress = IsolateManagerCompute<String?, String?>(
     const IsolateSettings.custom(
       isolateFunction: isolateProgressFunction,
       workerName: 'isolateProgressFunction',
@@ -66,7 +66,7 @@ class _MyAppState extends State<MyApp> {
     ),
   );
 
-  final isolateComplexFunction = IsolateManager.fromSettings(
+  final isolateComplexFunction = IsolateManagerCompute(
     const IsolateSettings(
       isolateFunction: complexFunction,
       workerName: 'complexFunction',
@@ -74,7 +74,7 @@ class _MyAppState extends State<MyApp> {
     ),
   );
 
-  final isolateFetchAndDecode = IsolateManager.fromSettings(
+  final isolateFetchAndDecode = IsolateManagerCompute(
     const IsolateSettings(
       isolateFunction: fetchAndDecode,
       isDebug: true,
@@ -139,7 +139,7 @@ class _MyAppState extends State<MyApp> {
 
   void calculateIsolateFunction([int max = 100]) {
     value2 = rad.nextInt(max);
-    isolateIsolateFunction.sendMessage(value2);
+    isolateIsolateFunction.compute(value2);
   }
 
   void calculateFibonacciRecursive([int max = 30]) async {
@@ -174,7 +174,7 @@ class _MyAppState extends State<MyApp> {
       age: 30,
       hobbies: ['playing games', 'reading books', 'watching TV'],
     );
-    isolateComplexFunction.sendMessage(param.toJson());
+    isolateComplexFunction.compute(param.toJson());
   }
 
   void callErrorFunction() async {
@@ -228,7 +228,7 @@ class _MyAppState extends State<MyApp> {
 
   void callFetchAndDecode() async {
     const url = 'https://pub.lamnhan.dev/isolate-manager/example-json.json';
-    isolateFetchAndDecode.sendMessage(url);
+    isolateFetchAndDecode.compute(url);
   }
 
   @override
@@ -270,7 +270,7 @@ class _MyAppState extends State<MyApp> {
                                 stream: isolateIsolateFunction.eventStream,
                                 builder: (context, snapshot) {
                                   if (!snapshot.hasData) {
-                                    isolateIsolateFunction.sendMessage(value2);
+                                    isolateIsolateFunction.compute(value2);
                                     return const Center(
                                       child: CircularProgressIndicator(),
                                     );
@@ -326,7 +326,7 @@ class _MyAppState extends State<MyApp> {
                                 builder: (context, snapshot) {
                                   if (!snapshot.hasData) {
                                     isolateFunctionName
-                                        .sendMessage(functionNameParam);
+                                        .compute(functionNameParam);
                                     return const Center(
                                       child: CircularProgressIndicator(),
                                     );
