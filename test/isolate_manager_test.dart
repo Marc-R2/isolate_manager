@@ -116,7 +116,7 @@ void main() {
     );
     await isolateManager.start();
 
-    await expectLater(() => isolateManager(-1), throwsStateError);
+    await expectLater(() => isolateManager.compute(-1), throwsStateError);
     await isolateManager.stop();
   });
 

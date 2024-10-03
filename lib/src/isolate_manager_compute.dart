@@ -45,16 +45,18 @@ class IsolateManagerCompute<R, P> extends IsolateManager<R, P> {
     IsolateCallback<R>? callback,
     bool priority = false,
   }) async {
-    final queue = ComputeTask<R, P>(params, callback);
-    await addQueue(queue, addToTop: priority);
-    return queue.future;
+    final task = await call(params, callback: callback, priority: priority);
+    return task.future;
   }
 
   @override
-  Future<R> call(
+  Future<ComputeTask<R, P>> call(
     P params, {
     IsolateCallback<R>? callback,
     bool priority = false,
-  }) =>
-      compute(params, callback: callback, priority: priority);
+  }) async {
+    final task = ComputeTask<R, P>(params, callback);
+    await addQueue(task, addToTop: priority);
+    return task;
+  }
 }

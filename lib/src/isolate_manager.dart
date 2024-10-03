@@ -279,35 +279,19 @@ abstract class IsolateManager<R, P> {
   ///       return true;
   ///  });
   /// ```
-  Future<R> call(
+  Future<IsolateQueue<R, P>> call(
     P params, {
     IsolateCallback<R>? callback,
     bool priority = false,
   });
 
-  /*
-  ///  Similar to the [compute], for who's using IsolateContactor.
-  Future<R> sendMessage(
-    P params, {
-    IsolateCallback<R>? callback,
-    bool priority = false,
-  }) =>
-      compute(params, callback: callback, priority: priority);
-   */
-
-  Future<void> addQueue(IsolateQueue<R, P> queue,
-      {bool addToTop = false}) async {
+  Future<void> addQueue(
+    IsolateQueue<R, P> queue, {
+    bool addToTop = false,
+  }) async {
     await start();
     queueStrategy.add(queue, addToTop: addToTop);
     _executeQueue();
-  }
-
-  Stream<R> stream(P params, {IsolateCallback<R>? callback}) {
-    final queue = StreamTask<R, P>(params, callback);
-    queueStrategy.add(queue);
-    _executeQueue();
-
-    return queue.stream;
   }
 
   /// Execute the element in the queues.
