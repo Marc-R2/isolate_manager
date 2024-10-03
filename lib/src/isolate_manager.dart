@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:isolate_manager/isolate_manager.dart';
+import 'package:isolate_manager/src/base/contactor/models/isolate_port.dart';
 
 import 'package:isolate_manager/src/base/isolate_contactor.dart';
 import 'package:isolate_manager/src/base/shared/isolate_params.dart';
@@ -85,7 +86,7 @@ abstract class IsolateManager<R, P> {
   int get concurrent => _concurrent;
 
   /// Get value as stream.
-  Stream<R> get eventStream => _eventStreamController.stream;
+  Stream<IsolateMessage<R>> get eventStream => _eventStreamController.stream;
 
   /// Get current number of queues.
   int get queuesLength => queueStrategy.queuesCount;
@@ -156,13 +157,27 @@ abstract class IsolateManager<R, P> {
         isDebug: isDebug,
       );
 
+  final _activeTasks = <int, IsolateQueue<R, P>>{};
+
   /// Map<IsolateContactor instance, isBusy>.
-  final Map<IsolateContactor<R, P>, bool> _isolates = {};
+  final Map<IsolateContactor<R, P>,
+          (StreamSubscription<IsolateMessage<R>>, List<IsolateQueue<R, P>>)>
+      _isolates = {};
+
+  List<IsolateQueue<R, P>> _getIsolateJobs(IsolateContactor<R, P> isolate) =>
+      _isolates[isolate]!.$2;
+
+  void _addJob(IsolateContactor<R, P> isolate, IsolateQueue<R, P> job) =>
+      _getIsolateJobs(isolate).add(job);
+
+  bool _removeJob(IsolateContactor<R, P> isolate, IsolateQueue<R, P> job) =>
+      _getIsolateJobs(isolate).remove(job);
 
   /// Controller for stream.
-  final StreamController<R> _eventStreamController =
+  final StreamController<IsolateMessage<R>> _eventStreamController =
       StreamController.broadcast();
-  StreamSubscription<R>? _streamSubscription;
+
+  StreamSubscription<IsolateMessage<R>>? _streamSubscription;
 
   // final List<StreamSubscription<R>> _streamSubscriptions = [];
 
@@ -211,12 +226,21 @@ abstract class IsolateManager<R, P> {
     if (concurrent > _isolates.length) {
       for (var i = 0; i < concurrent - _isolates.length; i++) {
         final isolate = settings.createIsolateContactor();
-        waiting.add(isolate.then((value) => _isolates.addAll({value: false})));
+        waiting.add(
+          isolate.then((value) {
+            final sub = value.onMessage.listen(
+              onData,
+              onError: onError,
+            );
+            _isolates.addAll({value: (sub, [])});
+          }),
+        );
       }
     } else {
       for (var i = 0; i < _isolates.length - concurrent; i++) {
         final isolate = _isolates.keys.last;
-        _isolates.remove(isolate);
+        final sub = _isolates.remove(isolate);
+        await sub?.$1.cancel();
         waiting.add(isolate.dispose());
       }
     }
@@ -299,97 +323,46 @@ abstract class IsolateManager<R, P> {
     printDebug(() => 'Number of queues: ${queueStrategy.queuesCount}');
     for (final isolate in _isolates.keys) {
       /// Allow calling `compute` before `start`.
-      if (queueStrategy.hasNext() && _isolates[isolate] == false) {
+      if (queueStrategy.hasNext() && _getIsolateJobs(isolate).isEmpty) {
         final queue = queueStrategy.getNext();
+        _activeTasks[queue.id] = queue;
         _execute(isolate, queue);
       }
     }
   }
 
-  /// Send and recieve value.
-  Future<R> _execute(IsolateContactor<R, P> isolate, IsolateQueue<R, P> queue) {
-    if (queue is ComputeTask<R, P>) return _executeCompute(isolate, queue);
-    if (queue is StreamTask<R, P>) return _executeStream(isolate, queue);
-    throw UnimplementedError();
-  }
-
-  /// Execute the stream.
-  Future<R> _executeStream(
-    IsolateContactor<R, P> isolate,
-    StreamTask<R, P> queue,
-  ) async {
-    // Mark the current isolate as busy.
-    _isolates[isolate] = true;
-
-    late final StreamSubscription<R> sub;
-
-    void endStream() {
-      sub.cancel();
-      // Mark the current isolate as free.
-      _isolates[isolate] = false;
-      // Send the result back to the main app.
-      queue.controller.close();
-    }
-
-    sub = isolate.onMessage.listen(
-      (event) async {
-        if (!await queue.callCallback(event)) return;
-        // Send the result back to the main app.
-        queue.controller.sink.add(event);
-      },
-      onError: (Object err, StackTrace? stack) {
-        // Send the exception back to the main app.
-        queue.controller.sink.addError(err, stack);
-        endStream();
-      },
-    );
-
+  /// Send [task] to the [isolate].
+  Future<void> _execute(IsolateContactor<R, P> isolate, IsolateQueue<R, P> task) async {
     try {
-      await isolate.sendMessage(queue.params);
+      // Assing the task to the isolate.
+      _addJob(isolate, task);
+      await isolate.sendMessage(task.params);
     } catch (_, __) {
       /* Do not need to catch the Exception here because it's catched in the above Stream */
     }
-
-    return queue.stream.last;
   }
 
-  Future<R> _executeCompute(
-    IsolateContactor<R, P> isolate,
-    ComputeTask<R, P> queue,
-  ) async {
-    // Mark the current isolate as busy.
-    _isolates[isolate] = true;
+  IsolateQueue<R, P> getTask(int id) {
+    final task = _activeTasks[id];
+    if (task != null) return task;
+    throw ArgumentError('Task not found: $id');
+  }
 
-    late final StreamSubscription<R> sub;
-    sub = isolate.onMessage.listen(
-      (event) async {
-        if (await queue.callCallback(event)) {
-          await sub.cancel();
-          // Mark the current isolate as free.
-          _isolates[isolate] = false;
-          // Send the result back to the main app.
-          _eventStreamController.sink.add(event);
-          queue.completer.complete(event);
-        }
-      },
-      onError: (Object err, StackTrace? stack) {
-        sub.cancel();
-        // Mark the current isolate as free.
-        _isolates[isolate] = false;
+  Future<void> onData(IsolateMessage<R> event) async {
+    final task = getTask(event.id);
 
-        // Send the exception back to the main app.
-        _eventStreamController.sink.addError(err, stack);
-        queue.completer.completeError(err, stack);
-      },
-    );
+    final callbackResult = await task.callCallback(event.value);
+    if (!callbackResult) return;
 
-    try {
-      await isolate.sendMessage(queue.params);
-    } catch (_, __) {
-      /* Do not need to catch the Exception here because it's catched in the above Stream */
+    if (task is ComputeTask<R, P>) {
+      task.completer.complete(event.value);
+    } else if (task is StreamTask<R, P>) {
+      task.controller.sink.add(event.value);
     }
+  }
 
-    return queue.completer.future;
+  void onError(Object error, StackTrace stack) {
+    _eventStreamController.sink.addError(error, stack);
   }
 
   /// Print logs if _settings.isDebug_ is true

@@ -5,7 +5,12 @@ import 'package:isolate_manager/src/isolate_manager.dart';
 /// Use for queuing your `compute`.
 abstract class IsolateQueue<R, P> {
   /// Use for queuing your `compute`.
-  IsolateQueue(this.params, this.callback);
+  IsolateQueue(this.params, this.callback) : id = _idCounter++;
+
+  static var _idCounter = 0;
+
+  /// Unique id of this `IsolateQueue`.
+  final int id;
 
   /// Control the params of this `IsolateQueue`.
   final P params;
