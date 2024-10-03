@@ -59,10 +59,11 @@ class IsolateContactorControllerImpl<R, P>
       _delegate.sink.add((IsolatePort.isolate, state));
 
   @override
-  void sendResult(R message) => _delegate.sink.add((IsolatePort.main, message));
+  void sendResult(IsolateMessage<R> message) =>
+      _delegate.sink.add((IsolatePort.main, message));
 
   @override
-  void sendResultError(IsolateException exception) =>
+  void sendResultError(Msg<IsolateException> exception) =>
       _delegate.sink.add((IsolatePort.main, exception));
 
   @override

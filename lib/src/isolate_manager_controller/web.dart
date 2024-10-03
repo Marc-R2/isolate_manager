@@ -48,11 +48,11 @@ class IsolateManagerControllerImpl<R, P>
 
   /// Send values from Isolate to the main application (to `onMessage`).
   @override
-  void sendResult(R result) => _delegate.sendResult(result);
+  void sendResult(Msg<R> result) => _delegate.sendResult(result);
 
   /// Send the `Exception` to the main app.
   @override
-  void sendResultError(IsolateException exception) =>
+  void sendResultError(Msg<IsolateException> exception) =>
       _delegate.sendResultError(exception);
 }
 
@@ -81,8 +81,9 @@ class _IsolateManagerWorkerController<R, P>
 
   /// Send error to the main app
   @override
-  void sendResultError(IsolateException exception) {
-    sendResult(exception.toJson());
+  void sendResultError(Msg<IsolateException> exception) {
+    throw UnimplementedError();
+    // sendResult(exception.toJson());
   }
 
   /// Mark the Worker as initialized

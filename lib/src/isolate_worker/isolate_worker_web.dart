@@ -21,9 +21,15 @@ Future<void> isolateWorkerImpl<R, P>(
     await completer.future;
   }
   controller.onIsolateMessage.listen((message) async {
+    final irc = IsolateRuntimeController<R, P>(
+      msg: message,
+      controller: controller,
+      initialParams: controller.initialParams,
+    );
+
     final completer = Completer<R?>();
     final then = completer.future
-        .then((value) => controller.sendResult(value as R))
+        .then((value) => irc.sendResult(value as R))
         .onError((err, stack) => completer.completeError(err!, stack));
 
     try {

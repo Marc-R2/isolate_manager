@@ -22,12 +22,34 @@ typedef IsolateOnDisposeCallback<R, P> = void Function(
 /// A callback for the [IsolateManagerFunction.customFunction] that will be executed every time
 /// the [message] is received from the `sendMessage` or `execute` method.
 typedef IsolateOnEventCallback<R, P> = FutureOr<R> Function(
-  IsolateManagerController<R, P> controller,
+  IsolateRuntimeController<R, P> controller,
   P message,
 );
 
 /// A function for the `IsolateManagerFunction.workerFunction`.
 typedef IsolateWorkerFunction<R, P> = FutureOr<R> Function(P message);
+
+class IsolateRuntimeController<R, P> {
+  IsolateRuntimeController({
+    required this.msg,
+    required this.controller,
+    required this.initialParams,
+  });
+
+  final Msg<P> msg;
+
+  final IsolateManagerController<R, P> controller;
+
+  final Object initialParams;
+
+  /// Send the `result` to the main isolate.
+  void sendResult(R result) => controller.sendResult(msg.withValue(result));
+
+  /// Send the `Exception` to the main isolate.
+  void sendResultError(Exception exception) {
+    controller.sendResultError(msg.withValue(IsolateException(exception)));
+  }
+}
 
 /// The helper functions for the [IsolateManager].
 class IsolateManagerFunction {
@@ -95,19 +117,24 @@ class IsolateManagerFunction {
     // Listen to messages received from the main isolate; this code will be called each time
     // you use `compute` or `sendMessage`.
     controller.onIsolateMessage.listen((message) {
+      final irc = IsolateRuntimeController<R, P>(
+        msg: message,
+        controller: controller,
+        initialParams: controller.initialParams,
+      );
+
       final completer = Completer<R>();
       completer.future.then(
-        (value) => autoHandleResult ? controller.sendResult(value) : null,
+        (value) => autoHandleResult ? irc.sendResult(value) : null,
         onError: autoHandleException
-            ? (Object err, StackTrace stack) => controller.sendResultError(
-                  IsolateException(err, stack),
-                )
+            ? (Object err, StackTrace stack) =>
+                irc.sendResultError(IsolateException(err, stack))
             : null,
       );
 
       // Use try-catch to send the exception to the main app
       try {
-        completer.complete(onEvent(controller, message.value));
+        completer.complete(onEvent(irc, message.value));
       } catch (err, stack) {
         // Send the exception to your main app
         if (autoHandleException) {

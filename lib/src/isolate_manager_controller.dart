@@ -40,9 +40,9 @@ class IsolateManagerController<R, P> {
   Stream<Msg<P>> get onIsolateMessage => _delegate.onIsolateMessage;
 
   /// Send values from Isolate to the main application (to `onMessage`).
-  void sendResult(R result) => _delegate.sendResult(result);
+  void sendResult(Msg<R> result) => _delegate.sendResult(result);
 
   /// Send the `Exception` to the main app.
-  void sendResultError(IsolateException exception) =>
+  void sendResultError(Msg<IsolateException> exception) =>
       _delegate.sendResultError(exception);
 }

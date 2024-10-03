@@ -22,7 +22,7 @@ mixin Streams<R, P> {
   Completer<void> ensureInitialized = Completer();
 
   void handleDelegate(dynamic event) {
-    final (key, value) = event as (IsolatePort, IsolateMessage<dynamic>);
+    final (key, value) = event as (IsolatePort, dynamic);
     switch (key) {
       case IsolatePort.main:
         _handelDelegateMain(value);
@@ -31,9 +31,7 @@ mixin Streams<R, P> {
     }
   }
 
-  void _handelDelegateMain(IsolateMessage<dynamic> event) {
-    final value = event.value;
-
+  void _handelDelegateMain(dynamic value) {
     if (value is IsolateException) {
       _mainStreamController.addError(value.error, value.stack);
       return;
@@ -46,18 +44,21 @@ mixin Streams<R, P> {
       return;
     }
 
-    _mainStreamController.add(event.withValue(useConverter(value)));
+    if (value is IsolateMessage<R>) {
+      _mainStreamController.add(value.withValue(useConverter(value.value)));
+    }
   }
 
   R useConverter(dynamic value);
 
-  void _handelDelegateIsolate(IsolateMessage<dynamic> event) {
-    final value = event.value;
+  void _handelDelegateIsolate(dynamic value) {
     if (value == IsolateState.dispose) {
       onDispose?.call();
       close();
+    } else if (value is IsolateMessage<P>) {
+      _isolateStreamController.add(value);
     } else {
-      _isolateStreamController.add(event.withValue(value as P));
+      throw UnimplementedError();
     }
   }
 

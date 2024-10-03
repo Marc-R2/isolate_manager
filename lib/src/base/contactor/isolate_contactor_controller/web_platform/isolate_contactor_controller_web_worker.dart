@@ -89,10 +89,10 @@ class IsolateContactorControllerImplWorker<R, P>
   }
 
   @override
-  void sendResult(R message) => throw UnimplementedError();
+  void sendResult(Msg<R> message) => throw UnimplementedError();
 
   @override
-  void sendResultError(IsolateException exception) =>
+  void sendResultError(Msg<IsolateException> exception) =>
       throw UnimplementedError();
 
   @override

@@ -57,10 +57,10 @@ abstract class IsolateContactorController<R, P> {
   void sendIsolateState(IsolateState state);
 
   /// Send the `result` of computation to `onIsolateMessage` stream
-  void sendResult(R result);
+  void sendResult(Msg<R> result);
 
   /// Send the `Exception` to the main app
-  void sendResultError(IsolateException exception);
+  void sendResultError(Msg<IsolateException> exception);
 
   /// Close this controller
   Future<void> close();
