@@ -7,10 +7,11 @@ import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller/
 import 'package:isolate_manager/src/base/contactor/models/exception.dart';
 import 'package:isolate_manager/src/base/contactor/models/isolate_port.dart';
 import 'package:isolate_manager/src/base/contactor/models/isolate_state.dart';
+import 'package:isolate_manager/src/isolate_manager.dart';
 import 'package:stream_channel/isolate_channel.dart';
 
 class IsolateContactorControllerImpl<R, P>
-    with Streams<R, P>
+    with Streams<Msg<R>, Msg<P>>
     implements IsolateContactorController<R, P> {
   IsolateContactorControllerImpl(
     dynamic params, {
@@ -39,7 +40,10 @@ class IsolateContactorControllerImpl<R, P>
   final dynamic _initialParams;
 
   @override
-  R useConverter(dynamic value) => converter?.call(value) ?? (value as R);
+  Msg<R> useConverter(Msg<dynamic> msg) {
+    final value = msg.value;
+    return msg.withValue(converter?.call(value) ?? (value as R));
+  }
 
   /// Get initial params for `createCustom`
   @override

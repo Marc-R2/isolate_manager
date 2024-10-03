@@ -13,6 +13,10 @@ typedef IsolateCallback<R> = FutureOr<bool> Function(R value);
 /// Callback for the `createCustom`'s `function`.
 typedef IsolateCustomFunction = IsolateFunction<void, dynamic>;
 
+typedef Msg<T> = IsolateMessage<T>;
+
+typedef IC<R, P> = IsolateContactor<Msg<R>, Msg<P>>;
+
 /// Create new [IsolateManager] instance by using [IsolateManager.fromSettings]
 abstract class IsolateManager<R, P> {
   /// An easy way to create a new isolate.
@@ -160,17 +164,16 @@ abstract class IsolateManager<R, P> {
   final _activeTasks = <int, IsolateQueue<R, P>>{};
 
   /// Map<IsolateContactor instance, isBusy>.
-  final Map<IsolateContactor<R, P>,
-          (StreamSubscription<IsolateMessage<R>>, List<IsolateQueue<R, P>>)>
+  final Map<IC<R, P>, (StreamSubscription<Msg<R>>, List<IsolateQueue<R, P>>)>
       _isolates = {};
 
-  List<IsolateQueue<R, P>> _getIsolateJobs(IsolateContactor<R, P> isolate) =>
+  List<IsolateQueue<R, P>> _getIsolateJobs(IC<R, P> isolate) =>
       _isolates[isolate]!.$2;
 
-  void _addJob(IsolateContactor<R, P> isolate, IsolateQueue<R, P> job) =>
+  void _addJob(IC<R, P> isolate, IsolateQueue<R, P> job) =>
       _getIsolateJobs(isolate).add(job);
 
-  bool _removeJob(IsolateContactor<R, P> isolate, IsolateQueue<R, P> job) =>
+  bool _removeJob(IC<R, P> isolate, IsolateQueue<R, P> job) =>
       _getIsolateJobs(isolate).remove(job);
 
   /// Controller for stream.
@@ -332,11 +335,12 @@ abstract class IsolateManager<R, P> {
   }
 
   /// Send [task] to the [isolate].
-  Future<void> _execute(IsolateContactor<R, P> isolate, IsolateQueue<R, P> task) async {
+  Future<void> _execute(IC<R, P> isolate, IsolateQueue<R, P> task) async {
     try {
       // Assing the task to the isolate.
       _addJob(isolate, task);
-      await isolate.sendMessage(task.params);
+      final msg = IsolateMessage(task.id, task.params);
+      await isolate.sendMessage(msg);
     } catch (_, __) {
       /* Do not need to catch the Exception here because it's catched in the above Stream */
     }

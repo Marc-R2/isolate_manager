@@ -10,16 +10,14 @@ enum IsolatePort {
 }
 
 class IsolateMessage<R> {
-  IsolateMessage(this.id, this.port, this.value);
+  IsolateMessage(this.id, this.value);
 
   final int id;
 
-  final IsolatePort port;
-
   final R value;
 
-  IsolateMessage<T> returnWith<T>(T value) =>
-      IsolateMessage<T>(id, port.opposite, value);
+  IsolateMessage<T> withValue<T>(T value) =>
+      IsolateMessage<T>(id, value);
 
   @override
   String toString() => 'IsolateMessage{id: $id, value: $value}';

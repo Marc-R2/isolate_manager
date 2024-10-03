@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:isolate_manager/isolate_manager.dart';
+import 'package:isolate_manager/src/base/contactor/models/isolate_port.dart';
 import 'package:isolate_manager/src/base/isolate_contactor.dart';
 
 enum SettingsType {
@@ -90,19 +91,20 @@ class IsolateSettings<R, P> {
   /// This function only available in `Worker` mode on Web platform.
   final IsolateConverter<R>? workerConverter;
 
-  Future<IsolateContactor<R, P>> createIsolateContactor() async {
+  Future<IsolateContactor<Msg<R>, Msg<P>>> createIsolateContactor() async {
     final (isolateFunctionData, paramsData) = switch (type) {
       SettingsType.futureOr => (_defaultIsolateFunction<R, P>, this._isolateFunction),
       SettingsType.futureOrCustom => (_isolateFunction as IsolateCustomFunction, initialParams),
       SettingsType.stream => throw UnimplementedError(),
     };
 
-    return IsolateContactor.createCustom<R, P>(
+    return IsolateContactor.createCustom<Msg<R>, Msg<P>>(
       isolateFunctionData,
       workerName: workerName,
       initialParams: paramsData,
-      converter: converter,
-      workerConverter: workerConverter,
+      // TODO: Add converters back in
+      // converter: () => converter,
+      // workerConverter: () => workerConverter,
       debugMode: isDebug,
     );
   }
