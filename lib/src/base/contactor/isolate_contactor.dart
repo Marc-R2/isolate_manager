@@ -6,6 +6,8 @@ import 'package:isolate_manager/src/base/contactor/isolate_contactor/isolate_con
 /// The type of the `function` of the `.create` method.
 typedef IsolateFunction<R, P> = FutureOr<R> Function(P params);
 
+typedef IsolateStream<R, P> = Stream<R> Function(P params);
+
 /// The type of the `function` of the `.createCustom` method.
 typedef CustomIsolateFunction = FutureOr<void> Function(dynamic);
 

@@ -3,6 +3,12 @@ import 'dart:async';
 import 'package:isolate_manager/isolate_manager.dart';
 import 'package:isolate_manager/src/base/isolate_contactor.dart';
 
+enum SettingsType {
+  futureOr,
+  futureOrCustom,
+  stream,
+}
+
 class IsolateSettings<R, P> {
   const IsolateSettings({
     required IsolateFunction<R, P> isolateFunction,
@@ -11,7 +17,17 @@ class IsolateSettings<R, P> {
     this.workerName = '',
     this.isDebug = false,
   })  : _isolateFunction = isolateFunction,
-        isCustomIsolate = false,
+        type = SettingsType.futureOr,
+        initialParams = null;
+
+  const IsolateSettings.stream({
+    required IsolateStream<R, P> isolateFunction,
+    this.converter,
+    this.workerConverter,
+    this.workerName = '',
+    this.isDebug = false,
+  })  : _isolateFunction = isolateFunction,
+        type = SettingsType.stream,
         initialParams = null;
 
   const IsolateSettings.custom({
@@ -22,14 +38,23 @@ class IsolateSettings<R, P> {
     this.initialParams,
     this.isDebug = false,
   })  : _isolateFunction = isolateFunction,
-        isCustomIsolate = true;
+        type = SettingsType.futureOrCustom;
+
+  static dynamic Function(P) _function<R, P>(dynamic params) {
+    if (params is IsolateFunction<R, P>) {
+      return params;
+    } else if (params is IsolateStream<R, P>) {
+      return params;
+    }
+    throw ArgumentError('Invalid function type');
+  }
 
   /// A default function for using the [IsolateSettings] method.
   static void _defaultIsolateFunction<R, P>(dynamic params) {
     IsolateManagerFunction.customFunction<R, P>(
       params,
       onEvent: (controller, message) {
-        final function = controller.initialParams as IsolateFunction<R, P>;
+        final function = _function<R, P>(controller.initialParams);
         return function(message);
       },
     );
@@ -48,7 +73,7 @@ class IsolateSettings<R, P> {
   final Object? initialParams;
 
   /// Is using your own isolate function.
-  final bool isCustomIsolate;
+  final SettingsType type;
 
   /// Allow print debug log.
   final bool isDebug;
@@ -66,9 +91,10 @@ class IsolateSettings<R, P> {
   final IsolateConverter<R>? workerConverter;
 
   Future<IsolateContactor<R, P>> createIsolateContactor() async {
-    final (isolateFunctionData, paramsData) = switch (isCustomIsolate) {
-      true => (_isolateFunction as IsolateCustomFunction, initialParams),
-      false => (_defaultIsolateFunction<R, P>, this._isolateFunction),
+    final (isolateFunctionData, paramsData) = switch (type) {
+      SettingsType.futureOr => (_defaultIsolateFunction<R, P>, this._isolateFunction),
+      SettingsType.futureOrCustom => (_isolateFunction as IsolateCustomFunction, initialParams),
+      SettingsType.stream => throw UnimplementedError(),
     };
 
     return IsolateContactor.createCustom<R, P>(

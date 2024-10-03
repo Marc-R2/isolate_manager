@@ -309,7 +309,48 @@ abstract class IsolateManager<R, P> {
   /// Send and recieve value.
   Future<R> _execute(IsolateContactor<R, P> isolate, IsolateQueue<R, P> queue) {
     if (queue is ComputeTask<R, P>) return _executeCompute(isolate, queue);
+    if (queue is StreamTask<R, P>) return _executeStream(isolate, queue);
     throw UnimplementedError();
+  }
+
+  /// Execute the stream.
+  Future<R> _executeStream(
+    IsolateContactor<R, P> isolate,
+    StreamTask<R, P> queue,
+  ) async {
+    // Mark the current isolate as busy.
+    _isolates[isolate] = true;
+
+    late final StreamSubscription<R> sub;
+
+    void endStream() {
+      sub.cancel();
+      // Mark the current isolate as free.
+      _isolates[isolate] = false;
+      // Send the result back to the main app.
+      queue.controller.close();
+    }
+
+    sub = isolate.onMessage.listen(
+      (event) async {
+        if (!await queue.callCallback(event)) return;
+        // Send the result back to the main app.
+        queue.controller.sink.add(event);
+      },
+      onError: (Object err, StackTrace? stack) {
+        // Send the exception back to the main app.
+        queue.controller.sink.addError(err, stack);
+        endStream();
+      },
+    );
+
+    try {
+      await isolate.sendMessage(queue.params);
+    } catch (_, __) {
+      /* Do not need to catch the Exception here because it's catched in the above Stream */
+    }
+
+    return queue.stream.last;
   }
 
   Future<R> _executeCompute(

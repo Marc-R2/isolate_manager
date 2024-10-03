@@ -1,7 +1,7 @@
 import 'package:isolate_manager/isolate_manager.dart';
 import 'package:isolate_manager/src/models/isolate_queue.dart';
 
-class IsolateManagerStream<R extends Stream<dynamic>, P> extends IsolateManager<R, P> {
+class IsolateManagerStream<R, P> extends IsolateManager<R, P> {
   IsolateManagerStream(
     super.settings, {
     super.concurrent,
