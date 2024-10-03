@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:isolate_manager/isolate_manager.dart';
 import 'package:isolate_manager/src/base/contactor/isolate_contactor/isolate_contactor_web.dart'
     if (dart.library.io) 'package:isolate_manager/src/base/contactor/isolate_contactor/isolate_contactor_stub.dart';
 
@@ -81,10 +82,10 @@ abstract class IsolateContactor<R, P> {
   /// Send message to the `function` for computing
   ///
   /// Throw `IsolateContactorException` when error occurs.
-  Future<R> sendMessage(P message);
+  Future<R> sendMessage(Msg<P> message);
 
   /// Listen to the result from the isolate.
-  Stream<R> get onMessage;
+  Stream<Msg<R>> get onMessage;
 
   /// Dispose current isolate
   Future<void> dispose();

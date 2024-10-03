@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:isolate_manager/isolate_manager.dart';
 import 'package:isolate_manager/src/base/contactor/isolate_contactor.dart';
 import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller/isolate_contactor_controller_stub.dart';
+import 'package:isolate_manager/src/base/contactor/models/isolate_port.dart';
 import 'package:isolate_manager/src/base/contactor/models/isolate_state.dart';
 
 class IsolateContactorInternal<R, P> extends IsolateContactor<R, P> {
@@ -36,7 +38,7 @@ class IsolateContactorInternal<R, P> extends IsolateContactor<R, P> {
   Isolate? _isolate;
 
   /// Check for current computing state in enum with listener
-  final StreamController<R> _mainStreamController =
+  final StreamController<IsolateMessage<R>> _mainStreamController =
       StreamController.broadcast();
 
   /// Control the function of isolate
@@ -102,7 +104,7 @@ class IsolateContactorInternal<R, P> extends IsolateContactor<R, P> {
 
   /// Get current message as stream
   @override
-  Stream<R> get onMessage => _mainStreamController.stream;
+  Stream<Msg<R>> get onMessage => _mainStreamController.stream;
 
   /// Dispose current [Isolate]
   @override
@@ -116,12 +118,12 @@ class IsolateContactorInternal<R, P> extends IsolateContactor<R, P> {
   ///
   /// Throw IsolateContactorException if error occurs.
   @override
-  Future<R> sendMessage(P message) async {
+  Future<R> sendMessage(Msg<P> message) async {
     final completer = Completer<R>();
-    late final StreamSubscription<R> sub;
+    late final StreamSubscription<Msg<R>> sub;
     sub = _isolateContactorController.onMessage.listen((result) async {
       if (!completer.isCompleted) {
-        completer.complete(result);
+        completer.complete(result.value);
         await sub.cancel();
       }
     })

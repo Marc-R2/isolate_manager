@@ -11,7 +11,7 @@ import 'package:isolate_manager/src/isolate_manager.dart';
 import 'package:stream_channel/isolate_channel.dart';
 
 class IsolateContactorControllerImpl<R, P>
-    with Streams<Msg<R>, Msg<P>>
+    with Streams<R, P>
     implements IsolateContactorController<R, P> {
   IsolateContactorControllerImpl(
     dynamic params, {
@@ -40,10 +40,7 @@ class IsolateContactorControllerImpl<R, P>
   final dynamic _initialParams;
 
   @override
-  Msg<R> useConverter(Msg<dynamic> msg) {
-    final value = msg.value;
-    return msg.withValue(converter?.call(value) ?? (value as R));
-  }
+  R useConverter(dynamic value) => converter?.call(value) ?? (value as R);
 
   /// Get initial params for `createCustom`
   @override
@@ -54,7 +51,7 @@ class IsolateContactorControllerImpl<R, P>
       _delegate.sink.add((IsolatePort.main, IsolateState.initialized));
 
   @override
-  void sendIsolate(P message) =>
+  void sendIsolate(Msg<P> message) =>
       _delegate.sink.add((IsolatePort.isolate, message));
 
   @override

@@ -6,6 +6,7 @@ import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller/
 import 'package:isolate_manager/src/base/contactor/models/exception.dart';
 import 'package:isolate_manager/src/base/contactor/models/isolate_port.dart';
 import 'package:isolate_manager/src/base/contactor/models/isolate_state.dart';
+import 'package:isolate_manager/src/isolate_manager.dart';
 
 class IsolateContactorControllerImplFuture<R, P>
     with Streams<R, P>
@@ -48,7 +49,7 @@ class IsolateContactorControllerImplFuture<R, P>
       _delegate.sink.add((IsolatePort.main, IsolateState.initialized));
 
   @override
-  void sendIsolate(P message) =>
+  void sendIsolate(Msg<P> message) =>
       _delegate.sink.add((IsolatePort.isolate, message));
 
   @override

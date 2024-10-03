@@ -27,7 +27,7 @@ Future<void> isolateWorkerImpl<R, P>(
         .onError((err, stack) => completer.completeError(err!, stack));
 
     try {
-      completer.complete(await function(message));
+      completer.complete(await function(message.value));
     } catch (err, stack) {
       completer.completeError(err, stack);
     }

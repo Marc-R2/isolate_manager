@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:isolate_manager/src/base/contactor/isolate_contactor.dart';
 import 'package:isolate_manager/src/base/contactor/isolate_contactor/web_platform/isolate_contactor_web.dart';
 import 'package:isolate_manager/src/base/contactor/isolate_contactor/web_platform/isolate_contactor_web_worker.dart';
+import 'package:isolate_manager/src/isolate_manager.dart';
 
 abstract class IsolateContactorInternal<R, P> extends IsolateContactor<R, P> {
   /// Constructer.
@@ -52,10 +53,10 @@ abstract class IsolateContactorInternal<R, P> extends IsolateContactor<R, P> {
   }
 
   @override
-  Stream<R> get onMessage => throw UnimplementedError();
+  Stream<Msg<R>> get onMessage => throw UnimplementedError();
 
   @override
-  Future<R> sendMessage(P message) {
+  Future<R> sendMessage(Msg<P> message) {
     throw UnimplementedError();
   }
 }

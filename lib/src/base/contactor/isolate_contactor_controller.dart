@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:isolate_manager/isolate_manager.dart';
 import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller/isolate_contactor_controller_web.dart'
     if (dart.library.io) 'package:isolate_manager/src/base/contactor/isolate_contactor_controller/isolate_contactor_controller_stub.dart';
 import 'package:isolate_manager/src/base/contactor/models/exception.dart';
+import 'package:isolate_manager/src/base/contactor/models/isolate_port.dart';
 import 'package:isolate_manager/src/base/contactor/models/isolate_state.dart';
 
 abstract class IsolateContactorController<R, P> {
@@ -40,16 +42,16 @@ abstract class IsolateContactorController<R, P> {
   dynamic get initialParams;
 
   /// Listen to result from the isolate
-  Stream<R> get onMessage;
+  Stream<IsolateMessage<R>> get onMessage;
 
   /// Listen to the message is sent to isolate
-  Stream<P> get onIsolateMessage;
+  Stream<IsolateMessage<P>> get onIsolateMessage;
 
   /// Ensure the `Isolate`/`Worker` has been initialized
   Completer<void> get ensureInitialized;
 
   /// Send `message` to the isolate for computation
-  void sendIsolate(P message);
+  void sendIsolate(Msg<P> message);
 
   /// Send an `IsolateState` message to the isolate
   void sendIsolateState(IsolateState state);

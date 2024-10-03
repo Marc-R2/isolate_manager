@@ -4,15 +4,16 @@ import 'package:isolate_manager/isolate_manager.dart';
 import 'package:isolate_manager/src/base/contactor/models/isolate_port.dart';
 
 mixin Streams<R, P> {
-  final StreamController<R> _mainStreamController =
+  final StreamController<IsolateMessage<R>> _mainStreamController =
       StreamController.broadcast();
 
-  final StreamController<P> _isolateStreamController =
+  final StreamController<IsolateMessage<P>> _isolateStreamController =
       StreamController.broadcast();
 
-  Stream<R> get onMessage => _mainStreamController.stream;
+  Stream<IsolateMessage<R>> get onMessage => _mainStreamController.stream;
 
-  Stream<P> get onIsolateMessage => _isolateStreamController.stream;
+  Stream<IsolateMessage<P>> get onIsolateMessage =>
+      _isolateStreamController.stream;
 
   void Function()? get onDispose;
 
@@ -21,7 +22,7 @@ mixin Streams<R, P> {
   Completer<void> ensureInitialized = Completer();
 
   void handleDelegate(dynamic event) {
-    final (key, value) = event as (IsolatePort, dynamic);
+    final (key, value) = event as (IsolatePort, IsolateMessage<dynamic>);
     switch (key) {
       case IsolatePort.main:
         _handelDelegateMain(value);
@@ -30,7 +31,9 @@ mixin Streams<R, P> {
     }
   }
 
-  void _handelDelegateMain(dynamic value) {
+  void _handelDelegateMain(IsolateMessage<dynamic> event) {
+    final value = event.value;
+
     if (value is IsolateException) {
       _mainStreamController.addError(value.error, value.stack);
       return;
@@ -43,17 +46,18 @@ mixin Streams<R, P> {
       return;
     }
 
-    _mainStreamController.add(useConverter(value));
+    _mainStreamController.add(event.withValue(useConverter(value)));
   }
 
   R useConverter(dynamic value);
 
-  void _handelDelegateIsolate(dynamic value) {
+  void _handelDelegateIsolate(IsolateMessage<dynamic> event) {
+    final value = event.value;
     if (value == IsolateState.dispose) {
       onDispose?.call();
       close();
     } else {
-      _isolateStreamController.add(value as P);
+      _isolateStreamController.add(event.withValue(value as P));
     }
   }
 

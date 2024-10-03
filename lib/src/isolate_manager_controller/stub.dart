@@ -31,7 +31,7 @@ class IsolateManagerControllerImpl<R, P>
 
   /// This parameter is only used for Isolate. Use to listen for values from the main application.
   @override
-  Stream<P> get onIsolateMessage => _delegate.onIsolateMessage;
+  Stream<Msg<P>> get onIsolateMessage => _delegate.onIsolateMessage;
 
   /// Mark the isolate as initialized.
   ///

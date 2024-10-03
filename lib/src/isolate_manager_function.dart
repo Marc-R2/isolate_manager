@@ -107,7 +107,7 @@ class IsolateManagerFunction {
 
       // Use try-catch to send the exception to the main app
       try {
-        completer.complete(onEvent(controller, message));
+        completer.complete(onEvent(controller, message.value));
       } catch (err, stack) {
         // Send the exception to your main app
         if (autoHandleException) {

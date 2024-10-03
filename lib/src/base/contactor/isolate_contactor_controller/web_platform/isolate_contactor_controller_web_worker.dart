@@ -5,6 +5,7 @@ import 'package:isolate_manager/src/base/contactor/isolate_contactor.dart';
 import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller/isolate_contactor_controller_web.dart';
 import 'package:isolate_manager/src/base/contactor/models/exception.dart';
 import 'package:isolate_manager/src/base/contactor/models/isolate_state.dart';
+import 'package:isolate_manager/src/isolate_manager.dart';
 import 'package:web/web.dart';
 
 class IsolateContactorControllerImplWorker<R, P>
@@ -43,13 +44,14 @@ class IsolateContactorControllerImplWorker<R, P>
       }
 
       // Decode json from string which sent from isolate
-      _mainStreamController.add(workerConverter(event.data));
+      // TODO: fix [Msg] id
+      _mainStreamController.add(Msg(-1, workerConverter(event.data)));
     }.toJS;
   }
 
   final Worker _delegate;
 
-  final StreamController<R> _mainStreamController =
+  final StreamController<Msg<R>> _mainStreamController =
       StreamController.broadcast();
 
   final void Function()? onDispose;
@@ -68,16 +70,16 @@ class IsolateContactorControllerImplWorker<R, P>
   dynamic get initialParams => _initialParams;
 
   @override
-  Stream<R> get onMessage => _mainStreamController.stream;
+  Stream<Msg<R>> get onMessage => _mainStreamController.stream;
 
   @override
-  Stream<P> get onIsolateMessage => throw UnimplementedError();
+  Stream<Msg<P>> get onIsolateMessage => throw UnimplementedError();
 
   @override
   Future<void> initialized() => throw UnimplementedError();
 
   @override
-  void sendIsolate(P message) {
+  void sendIsolate(Msg<P> message) {
     _delegate.postMessage(message as dynamic);
   }
 

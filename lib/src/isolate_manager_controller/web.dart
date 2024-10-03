@@ -44,7 +44,7 @@ class IsolateManagerControllerImpl<R, P>
 
   /// This parameter is only used for Isolate. Use to listen for values from the main application.
   @override
-  Stream<P> get onIsolateMessage => _delegate.onIsolateMessage;
+  Stream<Msg<P>> get onIsolateMessage => _delegate.onIsolateMessage;
 
   /// Send values from Isolate to the main application (to `onMessage`).
   @override
@@ -65,10 +65,10 @@ class _IsolateManagerWorkerController<R, P>
   }
 
   final DedicatedWorkerGlobalScope self;
-  final _streamController = StreamController<P>.broadcast();
+  final _streamController = StreamController<Msg<P>>.broadcast();
 
   @override
-  Stream<P> get onIsolateMessage => _streamController.stream;
+  Stream<Msg<P>> get onIsolateMessage => _streamController.stream;
 
   @override
   Object? get initialParams => null;
@@ -101,10 +101,10 @@ class _IsolateManagerWorkerController<R, P>
   Completer<void> get ensureInitialized => throw UnimplementedError();
 
   @override
-  Stream<R> get onMessage => throw UnimplementedError();
+  Stream<Msg<R>> get onMessage => throw UnimplementedError();
 
   @override
-  void sendIsolate(P message) => throw UnimplementedError();
+  void sendIsolate(Msg<P> message) => throw UnimplementedError();
 
   @override
   void sendIsolateState(IsolateState state) => throw UnimplementedError();

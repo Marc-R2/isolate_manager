@@ -15,7 +15,7 @@ typedef IsolateCustomFunction = IsolateFunction<void, dynamic>;
 
 typedef Msg<T> = IsolateMessage<T>;
 
-typedef IC<R, P> = IsolateContactor<Msg<R>, Msg<P>>;
+typedef IC<R, P> = IsolateContactor<R, P>;
 
 /// Create new [IsolateManager] instance by using [IsolateManager.fromSettings]
 abstract class IsolateManager<R, P> {

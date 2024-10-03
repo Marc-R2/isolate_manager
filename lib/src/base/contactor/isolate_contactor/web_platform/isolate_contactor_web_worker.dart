@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:isolate_manager/isolate_manager.dart';
 import 'package:isolate_manager/src/base/contactor/isolate_contactor.dart';
 import 'package:isolate_manager/src/base/contactor/isolate_contactor/isolate_contactor_web.dart';
 import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller.dart';
@@ -31,7 +32,7 @@ class IsolateContactorInternalWorker<R, P>
         );
 
   /// Check for current cumputing state in enum with listener
-  final StreamController<R> _mainStreamController =
+  final StreamController<Msg<R>> _mainStreamController =
       StreamController.broadcast();
 
   /// Listener for result
@@ -91,7 +92,7 @@ class IsolateContactorInternalWorker<R, P>
 
   /// Get current message as stream
   @override
-  Stream<R> get onMessage => _mainStreamController.stream;
+  Stream<Msg<R>> get onMessage => _mainStreamController.stream;
 
   /// Dispose current [Isolate]
   @override
@@ -110,17 +111,17 @@ class IsolateContactorInternalWorker<R, P>
   ///
   /// Throw IsolateContactorException if error occurs.
   @override
-  Future<R> sendMessage(P message) {
+  Future<R> sendMessage(Msg<P> message) {
     if (_isolateContactorController == null) {
       printDebug(() => '! This isolate has been terminated');
       return throw const IsolateException('This isolate was terminated');
     }
 
     final completer = Completer<R>();
-    late final StreamSubscription<R> sub;
+    late final StreamSubscription<Msg<R>> sub;
     sub = _isolateContactorController!.onMessage.listen((result) async {
       if (!completer.isCompleted) {
-        completer.complete(result);
+        completer.complete(result.value);
         await sub.cancel();
       }
     })
