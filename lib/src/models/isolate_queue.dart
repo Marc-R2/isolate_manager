@@ -35,6 +35,9 @@ class ComputeTask<R, P> extends IsolateQueue<R, P> {
   final Completer<R> completer = Completer<R>();
 
   Future<R> get future => completer.future;
+
+  @override
+  String toString() => 'ComputeTask{id: $id, params: $params}';
 }
 
 class StreamTask<R, P> extends IsolateQueue<R, P> {
@@ -44,4 +47,7 @@ class StreamTask<R, P> extends IsolateQueue<R, P> {
   final StreamController<R> controller = StreamController<R>.broadcast();
 
   Stream<R> get stream => controller.stream;
+
+  @override
+  String toString() => 'StreamTask{id: $id, params: $params}';
 }
