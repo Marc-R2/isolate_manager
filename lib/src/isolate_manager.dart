@@ -164,17 +164,21 @@ abstract class IsolateManager<R, P> {
   final _activeTasks = <int, IsolateQueue<R, P>>{};
 
   /// Map<IsolateContactor instance, isBusy>.
-  final Map<IC<R, P>, (StreamSubscription<Msg<R>>, List<IsolateQueue<R, P>>)>
-      _isolates = {};
+  final Map<IC<R, P>, List<IsolateQueue<R, P>>> _isolates = {};
 
   List<IsolateQueue<R, P>> _getIsolateJobs(IC<R, P> isolate) =>
-      _isolates[isolate]!.$2;
+      _isolates[isolate]!;
 
   void _addJob(IC<R, P> isolate, IsolateQueue<R, P> job) =>
       _getIsolateJobs(isolate).add(job);
 
-  bool _removeJob(IC<R, P> isolate, IsolateQueue<R, P> job) =>
-      _getIsolateJobs(isolate).remove(job);
+  bool _removeJob(IsolateQueue<R, P> job) {
+    _activeTasks.remove(job.id);
+    for (final isolate in _isolates.keys) {
+      if (_getIsolateJobs(isolate).remove(job)) return true;
+    }
+    return false;
+  }
 
   /// Controller for stream.
   final StreamController<IsolateMessage<R>> _eventStreamController =
@@ -193,7 +197,7 @@ abstract class IsolateManager<R, P> {
   /// Initialize the instance. This method can be called manually or will be
   /// called when the first `compute()` has been made.
   Future<void> start() async {
-    // This instance is stoped.
+    // This instance is stopped.
     if (_eventStreamController.isClosed) return;
 
     // Return here if this method is already completed.
@@ -207,11 +211,9 @@ abstract class IsolateManager<R, P> {
 
     final scaling = scale(concurrent);
 
-    _streamSubscription = _eventStreamController.stream.listen((result) {
-      _executeQueue();
-    })
+    _streamSubscription = _eventStreamController.stream.listen(onData)
       // Needs to put onError here to make the try-catch work properly.
-      ..onError((error, stack) {});
+      ..onError(onError);
 
     await scaling;
     _executeQueue();
@@ -231,29 +233,27 @@ abstract class IsolateManager<R, P> {
         final isolate = settings.createIsolateContactor();
         waiting.add(
           isolate.then((value) {
-            final sub = value.onMessage.listen(
-              onData,
-              onError: onError,
+            late final StreamSubscription<IsolateMessage<R>> sub;
+            sub = value.onMessage.listen(
+              _eventStreamController.add,
+              onError: _eventStreamController.addError,
+              onDone: () {
+                sub.cancel();
+                _isolates.remove(value);
+              },
             );
-            _isolates.addAll({value: (sub, [])});
+            _isolates.addAll({value: []});
           }),
         );
       }
     } else {
       for (var i = 0; i < _isolates.length - concurrent; i++) {
         final isolate = _isolates.keys.last;
-        final dispose =
-            _disposeIsolate(isolate).then((_) => _isolates.remove(isolate));
-        waiting.add(dispose);
+        _isolates.remove(isolate);
+        waiting.add(isolate.dispose());
       }
     }
     await Future.wait(waiting);
-  }
-
-  Future<void> _disposeIsolate(IsolateContactor<R, P> isolate) async {
-    final sub = _isolates[isolate];
-    await sub?.$1.cancel();
-    await isolate.dispose();
   }
 
   /// Stop isolate manager without close streamController.
@@ -262,7 +262,7 @@ abstract class IsolateManager<R, P> {
     _startedCompleter = Completer();
     queueStrategy.clear();
     await Future.wait(
-      [for (final isolate in _isolates.keys) _disposeIsolate(isolate)],
+      [for (final isolate in _isolates.keys) isolate.dispose()],
     );
     _isolates.clear();
     await _streamSubscription?.cancel();
@@ -334,7 +334,6 @@ abstract class IsolateManager<R, P> {
       /// Allow calling `compute` before `start`.
       if (queueStrategy.hasNext() && _getIsolateJobs(isolate).isEmpty) {
         final queue = queueStrategy.getNext();
-        _activeTasks[queue.id] = queue;
         _execute(isolate, queue);
       }
     }
@@ -342,18 +341,14 @@ abstract class IsolateManager<R, P> {
 
   /// Send [task] to the [isolate].
   Future<void> _execute(IC<R, P> isolate, IsolateQueue<R, P> task) async {
+    assert(!_activeTasks.containsKey(task.id), 'Task already exists');
+    _activeTasks[task.id] = task;
+
     try {
       // Assing the task to the isolate.
       _addJob(isolate, task);
       final msg = TaskData(task.id, task.params);
       await isolate.sendMessage(msg);
-
-      if (task is ComputeTask<R, P>) {
-        await task.future;
-        _removeJob(isolate, task);
-      }
-      // TODO: Remove stream task when it's done.
-      _executeQueue();
     } catch (_, __) {
       /* Do not need to catch the Exception here because it's catched in the above Stream */
     }
@@ -380,9 +375,9 @@ abstract class IsolateManager<R, P> {
     if (!callbackResult) return;
 
     if (task is ComputeTask<R, P>) {
-      task.completer.complete(event.value);
+      task.complete(event.value);
     } else if (task is StreamTask<R, P>) {
-      task.controller.sink.add(event.value);
+      task.add(event.value);
     }
   }
 
@@ -390,27 +385,21 @@ abstract class IsolateManager<R, P> {
     final control = event.state;
     task.state = control;
     if (control == TaskState.done || control == TaskState.error) {
+      if (task is StreamTask<R, P>) await task.close();
 
-      if (task is StreamTask<R, P>) {
-        await task.controller.close();
-      }
-
-      _activeTasks.remove(task.id);
+      _removeJob(task);
       _executeQueue();
     }
   }
 
   void onError(Object error, StackTrace stack) {
-    _eventStreamController.sink.addError(error, stack);
-
     if (error is IsolateException) {
-      final task = getTask(error.id)..state = TaskState.error;
-      _activeTasks.remove(task.id);
+      final task = getTask(error.id);
 
       if (task is ComputeTask<R, P>) {
-        task.completer.completeError(error.error, stack);
+        task.completeError(error.error, stack);
       } else if (task is StreamTask<R, P>) {
-        task.controller.sink.addError(error.error, stack);
+        task.addError(error.error, stack);
       }
     }
   }
