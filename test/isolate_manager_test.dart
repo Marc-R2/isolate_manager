@@ -21,7 +21,7 @@ void main() {
 
     test('IsolateException', () {
       final exception =
-          IsolateException('Object', StackTrace.fromString('stackTrace'));
+          IsolateException(1, 'Object', StackTrace.fromString('stackTrace'));
       final json = exception.toJson();
       expect(IsolateException.isValidObject(json), equals(true));
       expect(IsolateException.fromJson(json), isA<IsolateException>());
@@ -624,7 +624,7 @@ void isolateFunction(dynamic params) {
         final result = fibonacci(message);
         controller.sendResult(result);
       } catch (err, stack) {
-        controller.sendResultError(IsolateException(err, stack));
+        controller.sendResultError(err, stack);
       }
       return 0;
     },
@@ -661,7 +661,7 @@ void isolateCallbackFunction(dynamic params) {
 
         controller.sendResult(jsonEncode({'data': 'data'}));
       } catch (err, stack) {
-        controller.sendResultError(IsolateException(err, stack));
+        controller.sendResultError(err, stack);
       }
 
       // Just returns something that unused to complete this method.

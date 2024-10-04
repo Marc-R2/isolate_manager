@@ -23,29 +23,27 @@ mixin Streams<R, P> {
 
   void handleDelegate(dynamic event) {
     final (key, value) = event as (IsolatePort, dynamic);
-    switch (key) {
-      case IsolatePort.main:
-        _handelDelegateMain(value);
-      case IsolatePort.isolate:
-        _handelDelegateIsolate(value);
-    }
+    return switch (key) {
+      IsolatePort.main => _handelDelegateMain(value),
+      IsolatePort.isolate => _handelDelegateIsolate(value),
+    };
   }
 
-  void _handelDelegateMain(dynamic value) {
-    if (value is IsolateException) {
-      _mainStreamController.addError(value.error, value.stack);
+  void _handelDelegateMain(dynamic event) {
+    if (event is IsolateException) {
+      _mainStreamController.addError(event, event.stack);
       return;
     }
 
-    if (value == IsolateState.initialized) {
+    if (event == IsolateState.initialized) {
       if (!ensureInitialized.isCompleted) {
         ensureInitialized.complete();
       }
       return;
     }
 
-    if (value is IsolateMessage<R>) {
-      _mainStreamController.add(value.withValue(useConverter(value.value)));
+    if (event is IsolateMessage<R>) {
+      _mainStreamController.add(event.withValue(useConverter(event.value)));
     }
   }
 

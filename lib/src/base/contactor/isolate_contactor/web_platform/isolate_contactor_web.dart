@@ -108,7 +108,7 @@ class IsolateContactorInternalFuture<R, P>
   Future<R> sendMessage(Msg<P> message) {
     if (_isolateContactorController == null) {
       printDebug(() => '! This isolate has been terminated');
-      return throw const IsolateException('This isolate was terminated');
+      return throw const IsolateException(-1, 'This isolate was terminated');
     }
 
     final completer = Completer<R>();

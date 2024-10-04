@@ -60,7 +60,7 @@ abstract class IsolateContactorController<R, P> {
   void sendResult(Msg<R> result);
 
   /// Send the `Exception` to the main app
-  void sendResultError(Msg<IsolateException> exception);
+  void sendResultError(IsolateException exception);
 
   /// Close this controller
   Future<void> close();

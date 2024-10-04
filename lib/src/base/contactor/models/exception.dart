@@ -5,7 +5,7 @@ import 'dart:convert';
 class IsolateException implements Exception {
   /// This [IsolateException] mainly use to transfer an [Exception] between an `Isolate` and
   /// the main app.
-  const IsolateException(this.error, [this.stack = StackTrace.empty]);
+  const IsolateException(this.id, this.error, [this.stack = StackTrace.empty]);
 
   /// Convert from JSON.
   factory IsolateException.fromJson(dynamic json) {
@@ -18,10 +18,13 @@ class IsolateException implements Exception {
     final values = decoded[r'$IsolateException'] as Map;
 
     return IsolateException(
+      values['id'] as int,
       values['error'] as Object,
       StackTrace.fromString(values['stack'] as String),
     );
   }
+
+  final int id;
 
   /// Error object.
   final Object error;
@@ -32,6 +35,7 @@ class IsolateException implements Exception {
   /// Convert to JSON.
   String toJson() => jsonEncode({
         r'$IsolateException': {
+          'id': id,
           'error': error.toString(),
           'stack': stack.toString(),
         },

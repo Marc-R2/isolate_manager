@@ -43,6 +43,6 @@ class IsolateManagerController<R, P> {
   void sendResult(Msg<R> result) => _delegate.sendResult(result);
 
   /// Send the `Exception` to the main app.
-  void sendResultError(Msg<IsolateException> exception) =>
+  void sendResultError(IsolateException exception) =>
       _delegate.sendResultError(exception);
 }

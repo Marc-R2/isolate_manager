@@ -40,14 +40,15 @@ class IsolateRuntimeController<R, P> {
 
   final IsolateManagerController<R, P> controller;
 
-  final Object initialParams;
+  final dynamic initialParams;
 
   /// Send the `result` to the main isolate.
   void sendResult(R result) => controller.sendResult(msg.withValue(result));
 
   /// Send the `Exception` to the main isolate.
-  void sendResultError(Exception exception) {
-    controller.sendResultError(msg.withValue(IsolateException(exception)));
+  void sendResultError(Object err, [StackTrace? stack]) {
+    final exc = IsolateException(msg.id, err, stack ?? StackTrace.empty);
+    controller.sendResultError(exc);
   }
 }
 
@@ -128,7 +129,7 @@ class IsolateManagerFunction {
         (value) => autoHandleResult ? irc.sendResult(value) : null,
         onError: autoHandleException
             ? (Object err, StackTrace stack) =>
-                irc.sendResultError(IsolateException(err, stack))
+                irc.sendResultError(IsolateException(message.id, err, stack))
             : null,
       );
 

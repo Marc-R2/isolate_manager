@@ -341,6 +341,13 @@ abstract class IsolateManager<R, P> {
       _addJob(isolate, task);
       final msg = IsolateMessage(task.id, task.params);
       await isolate.sendMessage(msg);
+
+      if (task is ComputeTask<R, P>) {
+        await task.future;
+        _removeJob(isolate, task);
+      }
+      // TODO: Remove stream task when it's done.
+      _executeQueue();
     } catch (_, __) {
       /* Do not need to catch the Exception here because it's catched in the above Stream */
     }
@@ -367,6 +374,17 @@ abstract class IsolateManager<R, P> {
 
   void onError(Object error, StackTrace stack) {
     _eventStreamController.sink.addError(error, stack);
+
+    if (error is IsolateException) {
+      final task = getTask(error.id);
+      _activeTasks.remove(task.id);
+
+      if (task is ComputeTask<R, P>) {
+        task.completer.completeError(error.error, stack);
+      } else if (task is StreamTask<R, P>) {
+        task.controller.sink.addError(error.error, stack);
+      }
+    }
   }
 
   /// Print logs if _settings.isDebug_ is true

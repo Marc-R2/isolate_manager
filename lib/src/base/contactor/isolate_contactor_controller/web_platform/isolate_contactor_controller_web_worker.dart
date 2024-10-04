@@ -92,7 +92,7 @@ class IsolateContactorControllerImplWorker<R, P>
   void sendResult(Msg<R> message) => throw UnimplementedError();
 
   @override
-  void sendResultError(Msg<IsolateException> exception) =>
+  void sendResultError(IsolateException exception) =>
       throw UnimplementedError();
 
   @override

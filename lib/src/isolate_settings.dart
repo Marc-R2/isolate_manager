@@ -101,9 +101,8 @@ class IsolateSettings<R, P> {
       isolateFunctionData,
       workerName: workerName,
       initialParams: paramsData,
-      // TODO: Add converters back in
-      // converter: () => converter,
-      // workerConverter: () => workerConverter,
+      converter: converter,
+      workerConverter: workerConverter,
       debugMode: isDebug,
     );
   }

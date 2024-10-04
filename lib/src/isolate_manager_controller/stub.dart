@@ -51,6 +51,6 @@ class IsolateManagerControllerImpl<R, P>
 
   /// Send the `Exception` to the main app.
   @override
-  void sendResultError(Msg<IsolateException> exception) =>
+  void sendResultError(IsolateException exception) =>
       _delegate.sendResultError(exception);
 }
