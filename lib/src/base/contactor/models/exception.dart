@@ -49,4 +49,9 @@ class IsolateException implements Exception {
     } catch (_) {}
     return false;
   }
+
+  @override
+  String toString() {
+    return 'IsolateException{$error}';
+  }
 }

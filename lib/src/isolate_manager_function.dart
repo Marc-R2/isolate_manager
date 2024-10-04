@@ -127,10 +127,7 @@ class IsolateManagerFunction {
       final completer = Completer<R>();
       completer.future.then(
         (value) => autoHandleResult ? irc.sendResult(value) : null,
-        onError: autoHandleException
-            ? (Object err, StackTrace stack) =>
-                irc.sendResultError(IsolateException(message.id, err, stack))
-            : null,
+        onError: autoHandleException ? irc.sendResultError : null,
       );
 
       // Use try-catch to send the exception to the main app
