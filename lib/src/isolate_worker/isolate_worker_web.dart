@@ -5,6 +5,7 @@ import 'dart:async';
 import 'dart:js_interop';
 
 import 'package:isolate_manager/isolate_manager.dart';
+import 'package:isolate_manager/src/base/contactor/models/isolate_port.dart';
 import 'package:web/web.dart';
 
 @JS('self')
@@ -21,6 +22,9 @@ Future<void> isolateWorkerImpl<R, P>(
     await completer.future;
   }
   controller.onIsolateMessage.listen((message) async {
+    if (message is! TaskData<P>) {
+      throw UnimplementedError();
+    }
     final irc = IsolateRuntimeController<R, P>(
       msg: message,
       controller: controller,

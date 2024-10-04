@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:isolate_manager/isolate_manager.dart';
+import 'package:isolate_manager/src/base/contactor/models/isolate_port.dart';
 
 import 'package:isolate_manager/src/base/shared/function.dart';
 import 'package:isolate_manager/src/isolate_worker/isolate_worker_web.dart'
@@ -36,14 +37,18 @@ class IsolateRuntimeController<R, P> {
     required this.initialParams,
   });
 
-  final Msg<P> msg;
+  final TaskData<P> msg;
 
   final IsolateManagerController<R, P> controller;
 
   final dynamic initialParams;
 
   /// Send the `result` to the main isolate.
-  void sendResult(R result) => controller.sendResult(msg.withValue(result));
+  void sendResult(R result) => controller.sendResult(TaskData(msg.id, result));
+
+  void sendState(TaskState state) {
+    controller.sendResult(TaskControl<R>(msg.id, state));
+  }
 
   /// Send the `Exception` to the main isolate.
   void sendResultError(Object err, [StackTrace? stack]) {
@@ -95,6 +100,7 @@ class IsolateManagerFunction {
     IsolateOnDisposeCallback<R, P>? onDispose,
     bool autoHandleException = true,
     bool autoHandleResult = true,
+    bool autoSendState = true,
   }) async {
     // Initialize the controller for the child isolate. This function will be declared
     // with `Map<String, dynamic>` as the return type (.sendResult) and `String` as the parameter type (.sendMessage).
@@ -118,6 +124,10 @@ class IsolateManagerFunction {
     // Listen to messages received from the main isolate; this code will be called each time
     // you use `compute` or `sendMessage`.
     controller.onIsolateMessage.listen((message) {
+      if (message is! TaskData<P>) {
+        throw UnimplementedError();
+      }
+
       final irc = IsolateRuntimeController<R, P>(
         msg: message,
         controller: controller,
@@ -126,13 +136,20 @@ class IsolateManagerFunction {
 
       final completer = Completer<R>();
       completer.future.then(
-        (value) => autoHandleResult ? irc.sendResult(value) : null,
-        onError: autoHandleException ? irc.sendResultError : null,
+        (value) {
+          if (autoHandleResult) irc.sendResult(value);
+          if (autoSendState) irc.sendState(TaskState.done);
+        },
+        onError: (Object err, StackTrace? stack) {
+          if (autoHandleException) irc.sendResultError(err, stack);
+        },
       );
 
       // Use try-catch to send the exception to the main app
       try {
+        if (autoSendState) irc.sendState(TaskState.started);
         completer.complete(onEvent(irc, message.value));
+        if (autoSendState) irc.sendState(TaskState.started);
       } catch (err, stack) {
         // Send the exception to your main app
         if (autoHandleException) {

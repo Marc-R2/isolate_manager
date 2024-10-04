@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:isolate_manager/src/base/contactor/models/isolate_port.dart';
 import 'package:isolate_manager/src/isolate_manager.dart';
 
 /// Use for queuing your `compute`.
@@ -17,6 +18,8 @@ abstract class IsolateQueue<R, P> {
 
   /// Control when to return the needed result.
   final IsolateCallback<R>? callback;
+
+  TaskState state = TaskState.idle;
 
   FutureOr<bool> callCallback(R event) {
     final callback = this.callback;

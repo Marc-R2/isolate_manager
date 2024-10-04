@@ -11,7 +11,7 @@ import 'package:test/test.dart';
 //  dart test --platform=chrome,vm
 
 void main() async {
-  test('fibonacciStream', () async {
+  test('fibonacciStream(10)', () async {
     final isolate = IsolateManagerStream<int, int>(
       const IsolateSettings.stream(
         isolateFunction: fibonacciStream,
@@ -21,6 +21,41 @@ void main() async {
     final stream = isolate.stream(10);
     final list = await stream.toList();
     expect(list, [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55]);
+  });
+
+  test('fibonacciStream(0)', () async {
+    final isolate = IsolateManagerStream<int, int>(
+      const IsolateSettings.stream(
+        isolateFunction: fibonacciStream,
+      ),
+    );
+
+    final stream = isolate.stream(0);
+    final list = await stream.toList();
+    expect(list, [0]);
+  });
+
+  test('fibonacciStream(-1)', () async {
+    final isolate = IsolateManagerStream<int, int>(
+      const IsolateSettings.stream(
+        isolateFunction: fibonacciStream,
+      ),
+    );
+
+    final stream = isolate.stream(-1);
+    await expectLater(stream, emitsError(isA<StateError>()));
+  });
+
+  test('fibonacciStream(1)', () async {
+    final isolate = IsolateManagerStream<int, int>(
+      const IsolateSettings.stream(
+        isolateFunction: fibonacciStream,
+      ),
+    );
+
+    final stream = isolate.stream(1);
+    final list = await stream.toList();
+    expect(list, [0, 1]);
   });
 }
 

@@ -6,8 +6,7 @@ import 'package:isolate_manager/src/base/contactor/isolate_contactor.dart';
 import 'package:isolate_manager/src/base/contactor/isolate_contactor/isolate_contactor_web.dart';
 import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller.dart';
 import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller/isolate_contactor_controller_web.dart';
-import 'package:isolate_manager/src/base/contactor/models/exception.dart';
-import 'package:isolate_manager/src/base/contactor/models/isolate_state.dart';
+import 'package:isolate_manager/src/base/contactor/models/isolate_port.dart';
 import 'package:web/web.dart';
 
 class IsolateContactorInternalWorker<R, P>
@@ -120,7 +119,7 @@ class IsolateContactorInternalWorker<R, P>
     final completer = Completer<R>();
     late final StreamSubscription<Msg<R>> sub;
     sub = _isolateContactorController!.onMessage.listen((result) async {
-      if (!completer.isCompleted) {
+      if (!completer.isCompleted && result is TaskData<R>) {
         completer.complete(result.value);
         await sub.cancel();
       }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:isolate_manager/isolate_manager.dart';
+import 'package:isolate_manager/src/base/contactor/models/isolate_port.dart';
 import 'package:isolate_manager/src/base/isolate_contactor.dart';
 
 enum SettingsType {
@@ -55,7 +56,48 @@ class IsolateSettings<R, P> {
       params,
       onEvent: (controller, message) {
         final function = _function<R, P>(controller.initialParams);
-        return function(message);
+        assert(function is IsolateFunction<R, P>, 'Invalid function type');
+        return function.call(message);
+      },
+    );
+  }
+
+  static void _defaultStreamFunction<R, P>(dynamic params) {
+    IsolateManagerFunction.customFunction<R, P>(
+      params,
+      autoSendState: false,
+      autoHandleResult: false,
+      onEvent: (controller, message) async {
+        final function = _function<R, P>(controller.initialParams);
+        assert(function is IsolateStream<R, P>, 'Invalid function type');
+        controller.sendState(TaskState.started);
+
+        final stream = function.call(message) as Stream<R>;
+        final completer = Completer<R>();
+
+        late final StreamSubscription<R> sub;
+        R? lastResult;
+        sub = stream.listen(
+          (event) {
+            lastResult = event;
+            controller.sendResult(event);
+          },
+          onError: (Object error, StackTrace stackTrace) {
+            controller.sendResultError(error, stackTrace);
+            sub.cancel();
+          },
+          onDone: () {
+            sub.cancel();
+            controller.sendState(TaskState.done);
+            if (lastResult != null) {
+              completer.complete(lastResult);
+            } else {
+              completer.completeError('Stream is empty');
+            }
+          },
+        );
+
+        return completer.future;
       },
     );
   }
@@ -92,9 +134,18 @@ class IsolateSettings<R, P> {
 
   Future<IsolateContactor<R, P>> createIsolateContactor() async {
     final (isolateFunctionData, paramsData) = switch (type) {
-      SettingsType.futureOr => (_defaultIsolateFunction<R, P>, this._isolateFunction),
-      SettingsType.futureOrCustom => (_isolateFunction as IsolateCustomFunction, initialParams),
-      SettingsType.stream => throw UnimplementedError(),
+      SettingsType.futureOr => (
+          _defaultIsolateFunction<R, P>,
+          this._isolateFunction,
+        ),
+      SettingsType.futureOrCustom => (
+          _isolateFunction as IsolateCustomFunction,
+          initialParams,
+        ),
+      SettingsType.stream => (
+          _defaultStreamFunction<R, P>,
+          this._isolateFunction,
+        ),
     };
 
     return IsolateContactor.createCustom<R, P>(

@@ -13,7 +13,7 @@ typedef IsolateCallback<R> = FutureOr<bool> Function(R value);
 /// Callback for the `createCustom`'s `function`.
 typedef IsolateCustomFunction = IsolateFunction<void, dynamic>;
 
-typedef Msg<T> = IsolateMessage<T>;
+typedef Msg<T> = TaskStateUpdate<T>;
 
 typedef IC<R, P> = IsolateContactor<R, P>;
 
@@ -345,7 +345,7 @@ abstract class IsolateManager<R, P> {
     try {
       // Assing the task to the isolate.
       _addJob(isolate, task);
-      final msg = IsolateMessage(task.id, task.params);
+      final msg = TaskData(task.id, task.params);
       await isolate.sendMessage(msg);
 
       if (task is ComputeTask<R, P>) {
@@ -368,25 +368,43 @@ abstract class IsolateManager<R, P> {
   Future<void> onData(IsolateMessage<R> event) async {
     final task = getTask(event.id);
 
+    if (event is TaskData<R>) {
+      await _onData(task, event);
+    } else if (event is TaskControl<R>) {
+      await _onControl(task, event);
+    }
+  }
+
+  Future<void> _onData(IsolateQueue<R, P> task, TaskData<R> event) async {
     final callbackResult = await task.callCallback(event.value);
     if (!callbackResult) return;
 
     if (task is ComputeTask<R, P>) {
       task.completer.complete(event.value);
-      _activeTasks.remove(task.id);
     } else if (task is StreamTask<R, P>) {
       task.controller.sink.add(event.value);
-      // TODO: Remove stream task when it's done.
     }
+  }
 
-    _executeQueue();
+  Future<void> _onControl(IsolateQueue<R, P> task, TaskControl<R> event) async {
+    final control = event.state;
+    task.state = control;
+    if (control == TaskState.done || control == TaskState.error) {
+
+      if (task is StreamTask<R, P>) {
+        await task.controller.close();
+      }
+
+      _activeTasks.remove(task.id);
+      _executeQueue();
+    }
   }
 
   void onError(Object error, StackTrace stack) {
     _eventStreamController.sink.addError(error, stack);
 
     if (error is IsolateException) {
-      final task = getTask(error.id);
+      final task = getTask(error.id)..state = TaskState.error;
       _activeTasks.remove(task.id);
 
       if (task is ComputeTask<R, P>) {

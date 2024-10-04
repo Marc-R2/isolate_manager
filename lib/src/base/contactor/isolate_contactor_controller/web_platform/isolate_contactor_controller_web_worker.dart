@@ -4,6 +4,7 @@ import 'dart:js_interop';
 import 'package:isolate_manager/src/base/contactor/isolate_contactor.dart';
 import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller/isolate_contactor_controller_web.dart';
 import 'package:isolate_manager/src/base/contactor/models/exception.dart';
+import 'package:isolate_manager/src/base/contactor/models/isolate_port.dart';
 import 'package:isolate_manager/src/base/contactor/models/isolate_state.dart';
 import 'package:isolate_manager/src/isolate_manager.dart';
 import 'package:web/web.dart';
@@ -44,8 +45,8 @@ class IsolateContactorControllerImplWorker<R, P>
       }
 
       // Decode json from string which sent from isolate
-      // TODO: fix [Msg] id
-      _mainStreamController.add(Msg(-1, workerConverter(event.data)));
+      // TODO: fix [TaskData] id
+      _mainStreamController.add(TaskData(-1, workerConverter(event.data)));
     }.toJS;
   }
 

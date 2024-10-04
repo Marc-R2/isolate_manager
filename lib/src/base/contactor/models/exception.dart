@@ -52,6 +52,6 @@ class IsolateException implements Exception {
 
   @override
   String toString() {
-    return 'IsolateException{$error}';
+    return 'IsolateException{id: $id, error: $error}';
   }
 }

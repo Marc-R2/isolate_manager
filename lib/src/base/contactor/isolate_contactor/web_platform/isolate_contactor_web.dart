@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'package:isolate_manager/isolate_manager.dart';
 import 'package:isolate_manager/src/base/contactor/isolate_contactor/isolate_contactor_web.dart';
 import 'package:isolate_manager/src/base/contactor/isolate_contactor_controller/isolate_contactor_controller_web.dart';
+import 'package:isolate_manager/src/base/contactor/models/isolate_port.dart';
 import 'package:isolate_manager/src/base/isolate_contactor.dart';
 
 class IsolateContactorInternalFuture<R, P>
@@ -114,7 +115,7 @@ class IsolateContactorInternalFuture<R, P>
     final completer = Completer<R>();
     late final StreamSubscription<Msg<R>> sub;
     sub = _isolateContactorController.onMessage.listen((result) async {
-      if (!completer.isCompleted) {
+      if (!completer.isCompleted && result is TaskData<R>) {
         completer.complete(result.value);
         await sub.cancel();
       }

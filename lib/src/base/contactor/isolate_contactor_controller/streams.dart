@@ -42,8 +42,14 @@ mixin Streams<R, P> {
       return;
     }
 
-    if (event is IsolateMessage<R>) {
-      _mainStreamController.add(event.withValue(useConverter(event.value)));
+    if (event is TaskStateUpdate<R>) {
+      if (event is TaskData<R>) {
+        _mainStreamController.add(event.withValue(useConverter(event.value)));
+      } else if (event is TaskControl<R>) {
+        _mainStreamController.add(event);
+      } else {
+        throw UnimplementedError();
+      }
     }
   }
 
