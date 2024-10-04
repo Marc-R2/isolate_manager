@@ -242,12 +242,18 @@ abstract class IsolateManager<R, P> {
     } else {
       for (var i = 0; i < _isolates.length - concurrent; i++) {
         final isolate = _isolates.keys.last;
-        final sub = _isolates.remove(isolate);
-        await sub?.$1.cancel();
-        waiting.add(isolate.dispose());
+        final dispose =
+            _disposeIsolate(isolate).then((_) => _isolates.remove(isolate));
+        waiting.add(dispose);
       }
     }
     await Future.wait(waiting);
+  }
+
+  Future<void> _disposeIsolate(IsolateContactor<R, P> isolate) async {
+    final sub = _isolates[isolate];
+    await sub?.$1.cancel();
+    await isolate.dispose();
   }
 
   /// Stop isolate manager without close streamController.
@@ -256,7 +262,7 @@ abstract class IsolateManager<R, P> {
     _startedCompleter = Completer();
     queueStrategy.clear();
     await Future.wait(
-      [for (final isolate in _isolates.keys) isolate.dispose()],
+      [for (final isolate in _isolates.keys) _disposeIsolate(isolate)],
     );
     _isolates.clear();
     await _streamSubscription?.cancel();
@@ -367,9 +373,13 @@ abstract class IsolateManager<R, P> {
 
     if (task is ComputeTask<R, P>) {
       task.completer.complete(event.value);
+      _activeTasks.remove(task.id);
     } else if (task is StreamTask<R, P>) {
       task.controller.sink.add(event.value);
+      // TODO: Remove stream task when it's done.
     }
+
+    _executeQueue();
   }
 
   void onError(Object error, StackTrace stack) {
