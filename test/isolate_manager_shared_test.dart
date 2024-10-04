@@ -109,7 +109,9 @@ void main() async {
       // print('Stream get add: $result');
     }).onError((Object e) {
       // print('Error from stream: $e');
-      expect(e.toString(), equals(ArgumentError().toString()));
+      expect(e, isA<IsolateException>());
+      final exception = (e as IsolateException).error;
+      expect(exception, isA<ArgumentError>());
     });
 
     // Catch the error from the try-catch block
