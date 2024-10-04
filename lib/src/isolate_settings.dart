@@ -31,6 +31,16 @@ class IsolateSettings<R, P> {
         type = SettingsType.stream,
         initialParams = null;
 
+  const IsolateSettings.iterable({
+    required IsolateIterable<R, P> isolateFunction,
+    this.converter,
+    this.workerConverter,
+    this.workerName = '',
+    this.isDebug = false,
+  })  : _isolateFunction = isolateFunction,
+        type = SettingsType.stream,
+        initialParams = null;
+
   const IsolateSettings.custom({
     required IsolateCustomFunction isolateFunction,
     this.converter,
@@ -45,6 +55,8 @@ class IsolateSettings<R, P> {
     if (params is IsolateFunction<R, P>) {
       return params;
     } else if (params is IsolateStream<R, P>) {
+      return params;
+    } else if (params is IsolateIterable<R, P>) {
       return params;
     }
     throw ArgumentError('Invalid function type');
@@ -69,37 +81,54 @@ class IsolateSettings<R, P> {
       autoHandleResult: false,
       onEvent: (controller, message) async {
         final function = _function<R, P>(controller.initialParams);
-        assert(function is IsolateStream<R, P>, 'Invalid function type');
+        assert(
+          function is IsolateStream<R, P> || function is IsolateIterable<R, P>,
+          'Invalid function type',
+        );
         controller.sendState(TaskState.started);
 
-        final stream = function.call(message) as Stream<R>;
-        final completer = Completer<R>();
-
-        late final StreamSubscription<R> sub;
-        R? lastResult;
-        sub = stream.listen(
-          (event) {
-            lastResult = event;
-            controller.sendResult(event);
-          },
-          onError: (Object error, StackTrace stackTrace) {
-            controller.sendResultError(error, stackTrace);
-            sub.cancel();
-          },
-          onDone: () {
-            sub.cancel();
-            controller.sendState(TaskState.done);
-            if (lastResult != null) {
-              completer.complete(lastResult);
-            } else {
-              completer.completeError('Stream is empty');
-            }
-          },
-        );
-
-        return completer.future;
+        final result = function.call(message);
+        if (result is Stream<R>) {
+          return _handleStream(result, controller);
+        } else if (result is Iterable<R>) {
+          return _handleStream(Stream.fromIterable(result), controller);
+        } else {
+          // controller.sendState(TaskState.error);
+          throw ArgumentError('Invalid function type');
+        }
       },
     );
+  }
+
+  static Future<R> _handleStream<R>(
+    Stream<R> stream,
+    IsolateRuntimeController<dynamic, dynamic> controller,
+  ) {
+    final completer = Completer<R>();
+
+    late final StreamSubscription<R> sub;
+    R? lastResult;
+    sub = stream.listen(
+      (event) {
+        lastResult = event;
+        controller.sendResult(event);
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        controller.sendResultError(error, stackTrace);
+        sub.cancel();
+      },
+      onDone: () {
+        sub.cancel();
+        controller.sendState(TaskState.done);
+        if (lastResult != null) {
+          completer.complete(lastResult);
+        } else {
+          completer.completeError('Stream is empty');
+        }
+      },
+    );
+
+    return completer.future;
   }
 
   /// Isolate function.
