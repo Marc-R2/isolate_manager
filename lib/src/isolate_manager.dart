@@ -30,6 +30,7 @@ abstract class IsolateManager<R, P> {
     IsolateContactor.debugLogPrefix = debugLogPrefix;
   }
 
+  /*
   /// An easy way to create a new isolate.
   @Deprecated('Use IsolateManager.fromSettings')
   factory IsolateManager.create(
@@ -77,6 +78,7 @@ abstract class IsolateManager<R, P> {
         queueStrategy: queueStrategy,
         concurrent: concurrent,
       );
+   */
 
   final IsolateSettings<R, P> settings;
 
