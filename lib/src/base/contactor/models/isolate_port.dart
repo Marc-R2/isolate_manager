@@ -2,11 +2,6 @@
 enum IsolatePort {
   main,
   isolate;
-
-  IsolatePort get opposite => switch (this) {
-        main => isolate,
-        isolate => main,
-      };
 }
 
 enum TaskState {
