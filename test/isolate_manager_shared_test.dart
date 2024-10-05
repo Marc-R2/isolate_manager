@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 //  dart test
 //  dart test --platform=chrome,vm
 
-void main() async {
+void main() {
   test('test', () {
     // Create 3 isolates to solve the problems
     final isolates = IsolateManager.createShared(

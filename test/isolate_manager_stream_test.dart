@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 //  dart test
 //  dart test --platform=chrome,vm
 
-void main() async {
+void main() {
   test('fibonacciStream(10)', () async {
     final isolate = IsolateManagerStream<int, int>(
       const IsolateSettings.stream(
