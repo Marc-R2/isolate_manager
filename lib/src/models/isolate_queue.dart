@@ -2,11 +2,18 @@ import 'dart:async';
 
 import 'package:isolate_manager/src/base/contactor/models/isolate_port.dart';
 import 'package:isolate_manager/src/isolate_manager.dart';
+import 'package:isolate_manager/src/isolate_settings.dart';
+import 'package:isolate_manager/src/models/async_concurrent.dart';
 
 /// Use for queuing your `compute`.
 abstract class IsolateQueue<R, P> {
   /// Use for queuing your `compute`.
-  IsolateQueue(this.params, this.callback) : id = _idCounter++;
+  IsolateQueue(
+    this.params,
+    this.callback, {
+    this.type,
+    this.customAsyncConcurrent,
+  }) : id = _idCounter++;
 
   static var _idCounter = 0;
 
@@ -27,6 +34,17 @@ abstract class IsolateQueue<R, P> {
 
   bool get isDone => _completer.isCompleted;
 
+  final SettingsType? type;
+
+  final AsyncConcurrent? customAsyncConcurrent;
+
+  AsyncConcurrent get asyncConcurrent =>
+      customAsyncConcurrent ??
+      type?.defaultAsyncConcurrent ??
+      const AsyncConcurrentSingle();
+
+  bool canRun(TaskList running) => asyncConcurrent.canRun(running);
+
   FutureOr<bool> callCallback(R event) {
     final callback = this.callback;
     if (callback == null) return true;
@@ -38,7 +56,12 @@ abstract class IsolateQueue<R, P> {
 
 class ComputeTask<R, P> extends IsolateQueue<R, P> {
   /// Use for queuing your `compute`.
-  ComputeTask(super.params, super.callback);
+  ComputeTask(
+    super.params,
+    super.callback, {
+    super.type,
+    super.customAsyncConcurrent,
+  });
 
   /// Control the state and result of this `IsolateQueue`.
   final Completer<R> _dataCompleter = Completer<R>();
@@ -68,7 +91,12 @@ class ComputeTask<R, P> extends IsolateQueue<R, P> {
 
 class StreamTask<R, P> extends IsolateQueue<R, P> {
   /// Use for queuing your `stream`.
-  StreamTask(super.params, super.callback);
+  StreamTask(
+    super.params,
+    super.callback, {
+    super.type,
+    super.customAsyncConcurrent,
+  });
 
   final StreamController<R> _controller = StreamController<R>.broadcast();
 

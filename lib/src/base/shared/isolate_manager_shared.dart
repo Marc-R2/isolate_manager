@@ -47,7 +47,7 @@ class IsolateManagerShared {
     QueueStrategy<Object, IsolateParamsFunc<Object, dynamic>>? queueStrategy,
     bool isDebug = false,
   }) : _manager = IsolateManagerCompute(
-          IsolateSettings(
+          IsolateSettings.future(
             isolateFunction: internalFunction,
             workerName: useWorker ? join(subPath, kSharedWorkerName) : '',
             workerConverter: workerConverter,

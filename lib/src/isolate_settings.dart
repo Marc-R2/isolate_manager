@@ -3,22 +3,44 @@ import 'dart:async';
 import 'package:isolate_manager/isolate_manager.dart';
 import 'package:isolate_manager/src/base/contactor/models/isolate_port.dart';
 import 'package:isolate_manager/src/base/isolate_contactor.dart';
+import 'package:isolate_manager/src/models/async_concurrent.dart';
 
 enum SettingsType {
-  futureOr,
-  futureOrCustom,
-  stream,
+  sync(AsyncConcurrentSingle(), false),
+  future(AsyncConcurrentOtherAsync(), true),
+  custom(AsyncConcurrentSingle(), true),
+  iterable(AsyncConcurrentSingle(), false),
+  stream(AsyncConcurrentOtherAsync(), true);
+
+  const SettingsType(this.defaultAsyncConcurrent, this.isAsync);
+
+  final AsyncConcurrent defaultAsyncConcurrent;
+
+  final bool isAsync;
 }
 
 class IsolateSettings<R, P> {
-  const IsolateSettings({
-    required IsolateFunction<R, P> isolateFunction,
+  /// TODO: disallow `Future` as return type of [isolateFunction]
+  const IsolateSettings.sync({
+    required IsolateSync<R, P> isolateFunction,
     this.converter,
     this.workerConverter,
     this.workerName = '',
+    this.customAsyncConcurrent,
     this.isDebug = false,
   })  : _isolateFunction = isolateFunction,
-        type = SettingsType.futureOr,
+        type = SettingsType.sync,
+        initialParams = null;
+
+  const IsolateSettings.future({
+    required IsolateFuture<R, P> isolateFunction,
+    this.converter,
+    this.workerConverter,
+    this.workerName = '',
+    this.customAsyncConcurrent,
+    this.isDebug = false,
+  })  : _isolateFunction = isolateFunction,
+        type = SettingsType.future,
         initialParams = null;
 
   const IsolateSettings.stream({
@@ -26,6 +48,7 @@ class IsolateSettings<R, P> {
     this.converter,
     this.workerConverter,
     this.workerName = '',
+    this.customAsyncConcurrent,
     this.isDebug = false,
   })  : _isolateFunction = isolateFunction,
         type = SettingsType.stream,
@@ -36,9 +59,10 @@ class IsolateSettings<R, P> {
     this.converter,
     this.workerConverter,
     this.workerName = '',
+    this.customAsyncConcurrent,
     this.isDebug = false,
   })  : _isolateFunction = isolateFunction,
-        type = SettingsType.stream,
+        type = SettingsType.iterable,
         initialParams = null;
 
   const IsolateSettings.custom({
@@ -47,12 +71,13 @@ class IsolateSettings<R, P> {
     this.workerConverter,
     this.workerName = '',
     this.initialParams,
+    this.customAsyncConcurrent,
     this.isDebug = false,
   })  : _isolateFunction = isolateFunction,
-        type = SettingsType.futureOrCustom;
+        type = SettingsType.custom;
 
   static dynamic Function(P) _function<R, P>(dynamic params) {
-    if (params is IsolateFunction<R, P>) {
+    if (params is IsolateFuture<R, P>) {
       return params;
     } else if (params is IsolateStream<R, P>) {
       return params;
@@ -68,7 +93,7 @@ class IsolateSettings<R, P> {
       params,
       onEvent: (controller, message) {
         final function = _function<R, P>(controller.initialParams);
-        assert(function is IsolateFunction<R, P>, 'Invalid function type');
+        assert(function is IsolateFuture<R, P>, 'Invalid function type');
         return function.call(message);
       },
     );
@@ -161,19 +186,20 @@ class IsolateSettings<R, P> {
   /// This function only available in `Worker` mode on Web platform.
   final IsolateConverter<R>? workerConverter;
 
+  final AsyncConcurrent? customAsyncConcurrent;
+
   Future<IsolateContactor<R, P>> createIsolateContactor() async {
+    final iso = (_defaultIsolateFunction<R, P>, this._isolateFunction);
+    final stream = (_defaultStreamFunction<R, P>, this._isolateFunction);
+
     final (isolateFunctionData, paramsData) = switch (type) {
-      SettingsType.futureOr => (
-          _defaultIsolateFunction<R, P>,
-          this._isolateFunction,
-        ),
-      SettingsType.futureOrCustom => (
+      SettingsType.sync => iso,
+      SettingsType.future => iso,
+      SettingsType.stream => stream,
+      SettingsType.iterable => stream,
+      SettingsType.custom => (
           _isolateFunction as IsolateCustomFunction,
           initialParams,
-        ),
-      SettingsType.stream => (
-          _defaultStreamFunction<R, P>,
-          this._isolateFunction,
         ),
     };
 

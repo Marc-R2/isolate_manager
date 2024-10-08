@@ -1,4 +1,5 @@
 import 'package:isolate_manager/isolate_manager.dart';
+import 'package:isolate_manager/src/models/async_concurrent.dart';
 import 'package:isolate_manager/src/models/isolate_queue.dart';
 
 class IsolateManagerCompute<R, P> extends IsolateManager<R, P> {
@@ -54,8 +55,14 @@ class IsolateManagerCompute<R, P> extends IsolateManager<R, P> {
     P params, {
     IsolateCallback<R>? callback,
     bool priority = false,
+    AsyncConcurrent? asyncConcurrent,
   }) async {
-    final task = ComputeTask<R, P>(params, callback);
+    final task = ComputeTask<R, P>(
+      params,
+      callback,
+      type: settings.type,
+      customAsyncConcurrent: asyncConcurrent ?? settings.customAsyncConcurrent,
+    );
     await addQueue(task, addToTop: priority);
     return task;
   }

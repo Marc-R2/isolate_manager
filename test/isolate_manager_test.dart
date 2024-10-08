@@ -31,7 +31,7 @@ void main() {
   test('Test IsolateManager.create: Basic Usage', () async {
     // Create IsolateContactor
     final isolateManager = IsolateManagerCompute(
-      const IsolateSettings(
+      const IsolateSettings.sync(
         isolateFunction: fibonacci,
         isDebug: true,
       ),
@@ -48,7 +48,7 @@ void main() {
   test('Test IsolateManager.create', () async {
     // Create IsolateContactor
     final isolateManager = IsolateManagerCompute(
-      const IsolateSettings(isolateFunction: fibonacci),
+      const IsolateSettings.sync(isolateFunction: fibonacci),
       concurrent: 4,
     );
 
@@ -160,7 +160,7 @@ void main() {
   test('Test IsolateManager.create with Worker', () async {
     // Create IsolateContactor
     final isolateManager = IsolateManagerCompute(
-      const IsolateSettings(
+      const IsolateSettings.sync(
         isolateFunction: fibonacci,
         workerName: 'fibonacci',
       ),
@@ -183,7 +183,7 @@ void main() {
 
   test('Test with Exception future function', () async {
     final isolateManager = IsolateManagerCompute(
-      const IsolateSettings(isolateFunction: errorFunctionFuture),
+      const IsolateSettings.future(isolateFunction: errorFunctionFuture),
       concurrent: 1,
     );
     await isolateManager.start();
@@ -197,7 +197,7 @@ void main() {
 
   test('Test with Exception function', () async {
     final isolateManager = IsolateManagerCompute(
-      const IsolateSettings(isolateFunction: errorFunction),
+      const IsolateSettings.sync(isolateFunction: errorFunction),
       concurrent: 1,
     );
     await isolateManager.start();
@@ -211,7 +211,7 @@ void main() {
 
   test('Test with Exception function with available callback', () async {
     final isolateManager = IsolateManagerCompute(
-      const IsolateSettings(isolateFunction: errorFunction),
+      const IsolateSettings.sync(isolateFunction: errorFunction),
       concurrent: 1,
     );
     await isolateManager.start();
@@ -225,7 +225,7 @@ void main() {
 
   test('Test with Exception function with eagerError is true', () async {
     final isolateManager = IsolateManagerCompute(
-      const IsolateSettings(isolateFunction: errorFunction),
+      const IsolateSettings.sync(isolateFunction: errorFunction),
       concurrent: 2,
     );
     await isolateManager.start();
@@ -246,7 +246,7 @@ void main() {
       'Test with Exception function with eagerError is true with available callback',
       () async {
     final isolateManager = IsolateManagerCompute(
-      const IsolateSettings(isolateFunction: errorFunction),
+      const IsolateSettings.sync(isolateFunction: errorFunction),
       concurrent: 2,
     );
     await isolateManager.start();
@@ -265,7 +265,7 @@ void main() {
 
   test('Test with Exception function with eagerError is false', () async {
     final isolateManager = IsolateManagerCompute(
-      const IsolateSettings(isolateFunction: errorFunction),
+      const IsolateSettings.sync(isolateFunction: errorFunction),
       concurrent: 2,
     );
     await isolateManager.start();
@@ -286,7 +286,7 @@ void main() {
       'Test with Exception function with eagerError is false with available callback',
       () async {
     final isolateManager = IsolateManagerCompute(
-      const IsolateSettings(isolateFunction: errorFunction),
+      const IsolateSettings.sync(isolateFunction: errorFunction),
       concurrent: 2,
     );
     await isolateManager.start();
@@ -439,7 +439,7 @@ void main() {
 
   test('Test with returning a List<String>', () async {
     final isolate = IsolateManagerCompute(
-      IsolateSettings(
+      IsolateSettings.sync(
         isolateFunction: aStringList,
         workerName: 'workers/aStringList',
         // Cast to List<String>
@@ -456,7 +456,7 @@ void main() {
 
   test('Test with returning a Map<String, int>', () async {
     final isolate = IsolateManagerCompute(
-      const IsolateSettings(
+      const IsolateSettings.sync(
         isolateFunction: aStringIntMap,
         workerName: 'aStringIntMap',
       ),

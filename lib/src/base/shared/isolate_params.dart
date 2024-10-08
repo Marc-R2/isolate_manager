@@ -11,7 +11,7 @@ abstract class IsolateParams<R, P> {
 }
 
 class IsolateParamsFunc<R, P> extends IsolateParams<R, P> {
-  const IsolateParamsFunc(IsolateFunction<R, P> super.func, super.params);
+  const IsolateParamsFunc(IsolateFutureOr<R, P> super.func, super.params);
 
   dynamic Function(P) get func => funcRaw as dynamic Function(P);
 

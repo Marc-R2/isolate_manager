@@ -3,7 +3,7 @@
 library;
 
 export 'src/base/isolate_contactor.dart'
-    show IsolateConverter, IsolateException, IsolateFunction, IsolateState;
+    show IsolateConverter, IsolateException, IsolateFutureOr, IsolateState;
 export 'src/base/isolate_manager_shared.dart';
 export 'src/isolate_manager.dart';
 export 'src/isolate_manager_compute.dart';

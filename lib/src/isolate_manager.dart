@@ -11,7 +11,7 @@ import 'package:isolate_manager/src/models/isolate_queue.dart';
 typedef IsolateCallback<R> = FutureOr<bool> Function(R value);
 
 /// Callback for the `createCustom`'s `function`.
-typedef IsolateCustomFunction = IsolateFunction<void, dynamic>;
+typedef IsolateCustomFunction = IsolateFutureOr<void, dynamic>;
 
 typedef Msg<T> = TaskStateUpdate<T>;
 

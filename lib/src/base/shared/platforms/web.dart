@@ -8,7 +8,7 @@ import 'package:isolate_manager/src/base/shared/isolate_params.dart';
 /// Web platform does not need to use the `function`
 Future<R> platformExecuteImpl<R extends Object, P extends Object>({
   required DefaultIsolateManager manager,
-  required IsolateFunction<R, P> function,
+  required IsolateFutureOr<R, P> function,
   required P params,
   required String? workerFunction,
   required Object? workerParams,
