@@ -4,16 +4,16 @@ import 'package:isolate_manager/isolate_manager.dart';
 import 'package:isolate_manager/src/base/contactor/isolate_contactor/isolate_contactor_web.dart'
     if (dart.library.io) 'package:isolate_manager/src/base/contactor/isolate_contactor/isolate_contactor_stub.dart';
 
-typedef IsolateSync<R, P> = R Function(P params);
+typedef IsolateFunctionObject<R, P> = R Function(P params);
 
 /// The type of the `function` of the `.create` method.
-typedef IsolateFuture<R, P> = Future<R> Function(P params);
+typedef IsolateFunctionFuture<R, P> = Future<R> Function(P params);
 
 typedef IsolateFutureOr<R, P> = FutureOr<R> Function(P params);
 
-typedef IsolateStream<R, P> = Stream<R> Function(P params);
+typedef IsolateFunctionStream<R, P> = Stream<R> Function(P params);
 
-typedef IsolateIterable<R, P> = Iterable<R> Function(P params);
+typedef IsolateFunctionIterable<R, P> = Iterable<R> Function(P params);
 
 /// The type of the `function` of the `.createCustom` method.
 typedef CustomIsolateFunction = FutureOr<void> Function(dynamic);

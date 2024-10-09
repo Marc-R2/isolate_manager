@@ -11,7 +11,7 @@ abstract class IsolateQueue<R, P> {
   IsolateQueue(
     this.params,
     this.callback, {
-    this.type,
+    this.settings,
     this.customAsyncConcurrent,
   }) : id = _idCounter++;
 
@@ -34,14 +34,12 @@ abstract class IsolateQueue<R, P> {
 
   bool get isDone => _completer.isCompleted;
 
-  final SettingsType? type;
+  final IsolateSettings<R, P>? settings;
 
   final AsyncConcurrent? customAsyncConcurrent;
 
   AsyncConcurrent get asyncConcurrent =>
-      customAsyncConcurrent ??
-      type?.defaultAsyncConcurrent ??
-      const AsyncConcurrentSingle();
+      customAsyncConcurrent ?? const AsyncConcurrentSingle();
 
   bool canRun(TaskList running) => asyncConcurrent.canRun(running);
 
@@ -59,7 +57,7 @@ class ComputeTask<R, P> extends IsolateQueue<R, P> {
   ComputeTask(
     super.params,
     super.callback, {
-    super.type,
+    super.settings,
     super.customAsyncConcurrent,
   });
 
@@ -94,7 +92,7 @@ class StreamTask<R, P> extends IsolateQueue<R, P> {
   StreamTask(
     super.params,
     super.callback, {
-    super.type,
+    super.settings,
     super.customAsyncConcurrent,
   });
 

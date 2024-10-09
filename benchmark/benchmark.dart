@@ -44,7 +44,7 @@ Future<void> execute(int fibonacciNumber) async {
     ..stop()
     ..reset();
 
-  const settings = IsolateSettings.sync(
+  const settings = IsolateSettingsObject(
     isolateFunction: fibonacciRecursive,
     workerName: 'fibonacciRecursive',
   );

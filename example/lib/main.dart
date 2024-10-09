@@ -35,7 +35,7 @@ class _MyAppState extends State<MyApp> {
   )..start();
 
   final isolateIsolateFunction = IsolateManagerCompute(
-    const IsolateSettings.sync(
+    const IsolateSettingsObject(
       isolateFunction: isolateFunction,
       isDebug: true,
     ),
@@ -43,7 +43,7 @@ class _MyAppState extends State<MyApp> {
   );
 
   final isolateFunctionName = IsolateManagerCompute(
-    const IsolateSettings.sync(
+    const IsolateSettingsObject(
       isolateFunction: functionName,
       workerName: 'functionName',
       isDebug: true,
@@ -51,7 +51,7 @@ class _MyAppState extends State<MyApp> {
   );
 
   final isolateError = IsolateManagerCompute(
-    const IsolateSettings.sync(
+    const IsolateSettingsObject(
       isolateFunction: errorFunction,
       isDebug: true,
     ),
@@ -59,7 +59,7 @@ class _MyAppState extends State<MyApp> {
   );
 
   final isolateProgress = IsolateManagerCompute<String?, String?>(
-    const IsolateSettings.custom(
+    const IsolateSettingsCustom(
       isolateFunction: isolateProgressFunction,
       workerName: 'isolateProgressFunction',
       isDebug: true,
@@ -67,7 +67,7 @@ class _MyAppState extends State<MyApp> {
   );
 
   final isolateComplexFunction = IsolateManagerCompute(
-    const IsolateSettings.sync(
+    const IsolateSettingsObject(
       isolateFunction: complexFunction,
       workerName: 'complexFunction',
       isDebug: true,
@@ -75,7 +75,7 @@ class _MyAppState extends State<MyApp> {
   );
 
   final isolateFetchAndDecode = IsolateManagerCompute(
-    const IsolateSettings.future(
+    const IsolateSettingsFuture(
       isolateFunction: fetchAndDecode,
       isDebug: true,
     ),

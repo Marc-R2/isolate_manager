@@ -28,8 +28,8 @@ class IsolateManagerStream<R, P> extends IsolateManager<R, P> {
     final task = StreamTask(
       params,
       callback,
-      type: settings.type,
-      customAsyncConcurrent: asyncConcurrent ?? settings.customAsyncConcurrent,
+      settings: settings,
+      customAsyncConcurrent: asyncConcurrent,
     );
     await addQueue(task, addToTop: priority);
     return task;

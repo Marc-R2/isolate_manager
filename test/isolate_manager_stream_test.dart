@@ -13,7 +13,7 @@ import 'package:test/test.dart';
 void main() {
   test('fibonacciStream(10)', () async {
     final isolate = IsolateManagerStream<int, int>(
-      const IsolateSettings.stream(
+      const IsolateSettingsStream(
         isolateFunction: fibonacciStream,
       ),
     );
@@ -25,7 +25,7 @@ void main() {
 
   test('fibonacciSync(10)', () async {
     final isolate = IsolateManagerStream<int, int>(
-      const IsolateSettings.iterable(
+      const IsolateSettingsIterable(
         isolateFunction: fibonacciSync,
       ),
     );
@@ -37,7 +37,7 @@ void main() {
 
   test('fibonacciStream(0)', () async {
     final isolate = IsolateManagerStream<int, int>(
-      const IsolateSettings.stream(
+      const IsolateSettingsStream(
         isolateFunction: fibonacciStream,
       ),
     );
@@ -49,7 +49,7 @@ void main() {
 
   test('fibonacciStream(-1)', () async {
     final isolate = IsolateManagerStream<int, int>(
-      const IsolateSettings.stream(
+      const IsolateSettingsStream(
         isolateFunction: fibonacciStream,
       ),
     );
@@ -60,7 +60,7 @@ void main() {
 
   test('fibonacciStream(1)', () async {
     final isolate = IsolateManagerStream<int, int>(
-      const IsolateSettings.stream(
+      const IsolateSettingsStream(
         isolateFunction: fibonacciStream,
       ),
     );

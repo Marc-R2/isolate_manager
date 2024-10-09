@@ -39,7 +39,7 @@ Future<void> generate(ArgResults argResults, List<String> dartArgs) async {
 
   final allFiles = _listAllFiles(Directory(input), []);
   final isolateManager = IsolateManagerCompute(
-    const IsolateSettings.future(
+    const IsolateSettingsFuture(
       isolateFunction: _getAndGenerateFromAnotatedFunctions,
     ),
     concurrent: 3,

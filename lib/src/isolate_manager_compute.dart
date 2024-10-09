@@ -60,8 +60,8 @@ class IsolateManagerCompute<R, P> extends IsolateManager<R, P> {
     final task = ComputeTask<R, P>(
       params,
       callback,
-      type: settings.type,
-      customAsyncConcurrent: asyncConcurrent ?? settings.customAsyncConcurrent,
+      settings: settings,
+      customAsyncConcurrent: asyncConcurrent,
     );
     await addQueue(task, addToTop: priority);
     return task;

@@ -1,3 +1,4 @@
+import 'package:isolate_manager/src/isolate_settings.dart';
 import 'package:isolate_manager/src/models/isolate_queue.dart';
 
 typedef Task = IsolateQueue<dynamic, dynamic>;
@@ -37,5 +38,5 @@ class AsyncConcurrentUnlimited extends AsyncConcurrent {
 class AsyncConcurrentOtherAsync extends AsyncConcurrent {
   const AsyncConcurrentOtherAsync() : super(otherAsyncCheck);
 
-  static bool otherAsyncCheck(Task t1) => t1.type?.isAsync ?? false;
+  static bool otherAsyncCheck(Task t1) => t1.settings is IsolateSettingsAsync;
 }
