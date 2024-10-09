@@ -4,6 +4,8 @@ import 'package:isolate_manager/src/base/isolate_contactor.dart';
 dynamic Function(P) _function<R, P>(dynamic params) {
   if (params is IsolateFunctionFuture<R, P>) {
     return params;
+  } else if (params is IsolateFunctionObject<R, P>) {
+    return params;
   }
   throw ArgumentError('Invalid function type: ${params.runtimeType}');
 }
@@ -14,7 +16,11 @@ void _defaultIsolateFunction<R, P>(dynamic params) {
     params,
     onEvent: (controller, message) {
       final function = _function<R, P>(controller.initialParams);
-      assert(function is IsolateFunctionFuture<R, P>, 'Invalid function type');
+      assert(
+        function is IsolateFunctionFuture<R, P> ||
+            function is IsolateFunctionObject<R, P>,
+        'Invalid function type',
+      );
       return function.call(message);
     },
   );

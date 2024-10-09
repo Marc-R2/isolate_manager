@@ -100,6 +100,6 @@ class IsolateSettingsCustom<R, P> extends IsolateSettingsAsync<R, P> {
   final IsolateCustomFunction isolateFunction;
 
   @override
-  (void Function(dynamic), Object?) get typedIsolateFunction =>
+  (IsolateCustomFunction, Object?) get typedIsolateFunction =>
       (isolateFunction, initialParams);
 }
