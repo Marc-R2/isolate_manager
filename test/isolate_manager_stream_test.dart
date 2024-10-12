@@ -69,6 +69,34 @@ void main() {
     final list = await stream.toList();
     expect(list, [0, 1]);
   });
+
+  test('async fibonacciStream(s)', () async {
+    final isolate = IsolateManagerStream<int, int>(
+      const IsolateSettingsStream(
+        isolateFunction: fibonacciStream,
+      ),
+    );
+
+    const samples = 64;
+
+    final stream1 = isolate.stream(samples);
+    final stream2 = isolate.stream(samples);
+
+    final stopwatch = Stopwatch()..start();
+
+    final l1 = stream1.toList();
+    final l2 = stream2.toList();
+    await Future.wait([l1, l2]);
+    expect(await l1, await l2);
+
+    stopwatch.stop();
+
+    // Check if the total time is less than the sum of individual times
+    expect(
+      stopwatch.elapsedMilliseconds,
+      lessThan(2 * samples * streamDelay.inMilliseconds),
+    );
+  });
 }
 
 @isolateManagerWorker
@@ -89,6 +117,8 @@ Iterable<int> fibonacciSync(int n) sync* {
   }
 }
 
+const streamDelay = Duration(milliseconds: 4);
+
 @isolateManagerWorker
 Stream<int> fibonacciStream(int n) async* {
   if (n < 0) throw StateError('n<0');
@@ -104,6 +134,6 @@ Stream<int> fibonacciStream(int n) async* {
     f1 = f2;
     f2 = r;
     yield r;
-    await Future<void>.delayed(const Duration(milliseconds: 4));
+    await Future<void>.delayed(streamDelay);
   }
 }

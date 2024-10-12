@@ -334,11 +334,16 @@ abstract class IsolateManager<R, P> {
     printDebug(() => 'Number of queues: ${queueStrategy.queuesCount}');
     for (final isolate in _isolates.keys) {
       /// Allow calling `compute` before `start`.
-      if (queueStrategy.hasNext() && _getIsolateJobs(isolate).isEmpty) {
+      if (queueStrategy.hasNext() && _canRunJob(isolate, queueStrategy.next)) {
         final queue = queueStrategy.getNext();
         _execute(isolate, queue);
       }
     }
+  }
+
+  bool _canRunJob(IC<R, P> isolate, IsolateQueue<R, P>? next) {
+    final running = _getIsolateJobs(isolate);
+    return next?.canRun(running) ?? false;
   }
 
   /// Send [task] to the [isolate].

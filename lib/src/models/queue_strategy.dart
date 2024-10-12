@@ -32,6 +32,8 @@ abstract class QueueStrategy<R, P> {
   /// Number of the current queues.
   int get queuesCount => queues.length;
 
+  IsolateQueue<R, P>? get next => queues.firstOrNull;
+
   /// Run this method before adding a new computation to the Queue if the max
   /// queue count is exceeded. If this method returns `false`, the new computation
   /// will not be added to the Queue.

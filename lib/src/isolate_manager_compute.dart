@@ -45,8 +45,14 @@ class IsolateManagerCompute<R, P> extends IsolateManager<R, P> {
     P params, {
     IsolateCallback<R>? callback,
     bool priority = false,
+    AsyncConcurrent? asyncConcurrent,
   }) async {
-    final task = await call(params, callback: callback, priority: priority);
+    final task = await call(
+      params,
+      callback: callback,
+      priority: priority,
+      asyncConcurrent: asyncConcurrent,
+    );
     return task.future;
   }
 

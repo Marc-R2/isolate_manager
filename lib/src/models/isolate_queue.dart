@@ -39,7 +39,9 @@ abstract class IsolateQueue<R, P> {
   final AsyncConcurrent? customAsyncConcurrent;
 
   AsyncConcurrent get asyncConcurrent =>
-      customAsyncConcurrent ?? const AsyncConcurrentSingle();
+      customAsyncConcurrent ??
+      settings?.customAsyncConcurrent ??
+      const AsyncConcurrentSingle();
 
   bool canRun(TaskList running) => asyncConcurrent.canRun(running);
 

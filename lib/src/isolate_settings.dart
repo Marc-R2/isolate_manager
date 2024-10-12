@@ -79,7 +79,7 @@ abstract class IsolateSettingsAsync<R, P> extends IsolateSettings<R, P> {
     super.converter,
     super.workerConverter,
     super.workerName = '',
-    super.customAsyncConcurrent = const AsyncConcurrentSingle(),
+    super.customAsyncConcurrent = const AsyncConcurrentOtherAsync(),
     super.initialParams,
     super.isDebug = false,
   });
