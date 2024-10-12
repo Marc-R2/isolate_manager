@@ -343,7 +343,8 @@ abstract class IsolateManager<R, P> {
 
   bool _canRunJob(IC<R, P> isolate, IsolateQueue<R, P>? next) {
     final running = _getIsolateJobs(isolate);
-    return next?.canRun(running) ?? false;
+    return (next?.canRun(running) ?? false) &&
+        running.every((e) => e.asyncConcurrent.canRun(running));
   }
 
   /// Send [task] to the [isolate].
