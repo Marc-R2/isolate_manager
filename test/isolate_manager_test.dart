@@ -426,6 +426,7 @@ void main() {
     final isolate = IsolateManager.create(
       aStringList,
       workerName: 'workers/aStringList',
+      isDebug: true,
     );
     await isolate.start();
 
@@ -466,6 +467,7 @@ void main() {
   test('Test a 1D List to 2D List', () async {
     final isolate = IsolateManager.create(
       a1DTo2DList,
+      isDebug: true,
     );
     await isolate.start();
 
@@ -611,25 +613,25 @@ int fibonacciRecursive(int n) {
 }
 
 @isolateManagerWorker
-List aStringList(List params) {
+List<dynamic> aStringList(List<dynamic> params) {
   return params;
 }
 
 @isolateManagerWorker
-Map aDynamicMap(Map params) {
+Map<dynamic, dynamic> aDynamicMap(Map<dynamic, dynamic> params) {
   return params;
 }
 
 @isolateManagerWorker
-List a2DTo1DList(List params) {
-  return params.map((e) => (e as List).join()).toList();
+List<dynamic> a2DTo1DList(List<List<dynamic>> params) {
+  return params.map((e) => (e).join()).toList();
 }
 
 @isolateManagerWorker
-List a1DTo2DList(List params) {
-  final result = [[], []];
-  for (int i = 0; i < params.length; i++) {
-    if (i % 2 == 0) {
+List<dynamic> a1DTo2DList(List<dynamic> params) {
+  final result = <List<dynamic>>[[], []];
+  for (var i = 0; i < params.length; i++) {
+    if (i.isEven) {
       result[0].add(params[i]);
     } else {
       result[1].add(params[i]);

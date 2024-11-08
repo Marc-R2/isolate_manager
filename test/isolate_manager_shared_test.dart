@@ -116,7 +116,7 @@ void main() async {
     }
 
     // Stop the isolate after 3 seconds
-    await Future.delayed(const Duration(seconds: 3));
+    await Future<void>.delayed(const Duration(seconds: 3));
     await isolates.stop();
   });
 
@@ -216,7 +216,7 @@ List<List<String>> complexReturn(List<List<String>> params) {
 }
 
 @isolateManagerSharedWorker
-Map aDynamicMap(Map params) {
+Map<dynamic, dynamic> aDynamicMap(Map<dynamic, dynamic> params) {
   return params;
 }
 
