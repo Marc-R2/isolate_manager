@@ -26,7 +26,7 @@ Future<void> isolateWorkerImpl<R, P>(
           controller.sendResultError(IsolateException(err, stack)),
     );
     try {
-      completer.complete(function(message) as dynamic);
+      completer.complete(function.call(message) as R?);
     } catch (err, stack) {
       completer.completeError(err, stack);
     }

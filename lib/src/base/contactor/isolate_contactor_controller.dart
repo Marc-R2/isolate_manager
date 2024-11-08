@@ -19,7 +19,7 @@ abstract class IsolateContactorController<R, P> {
     void Function()? onDispose,
   }) {
     // This method is not used in this controller
-    R converter(dynamic value) => value;
+    R converter(dynamic value) => value as R;
     return IsolateContactorControllerImpl<R, P>(
       params,
       onDispose: onDispose,

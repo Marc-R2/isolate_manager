@@ -91,8 +91,7 @@ bool containsAnnotations(String content) {
 Future<Map<String, String>> _getAndGenerateFromAnotatedFunctions(
   List<dynamic> params,
 ) async {
-  final String filePath = params[0];
-
+  final filePath = params[0] as String;
   return _getAnotatedFunctions(filePath);
 }
 

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:isolate';
 
 import 'package:isolate_manager/src/base/contactor/models/isolate_port.dart';
 import 'package:isolate_manager/src/base/contactor/models/isolate_state.dart';
@@ -11,7 +12,8 @@ import '../models/exception.dart';
 class IsolateContactorControllerImpl<R, P>
     implements IsolateContactorController<R, P> {
   final IsolateChannel<Map<IsolatePort, dynamic>> _delegate;
-  late final StreamSubscription<Map<IsolatePort, dynamic>> _delegateSubscription;
+  late final StreamSubscription<Map<IsolatePort, dynamic>>
+      _delegateSubscription;
 
   final StreamController<R> _mainStreamController =
       StreamController.broadcast();
@@ -31,8 +33,8 @@ class IsolateContactorControllerImpl<R, P>
     required IsolateConverter<R>?
         workerConverter, // Converter for Worker (Web Only)
   })  : _delegate = params is List
-            ? IsolateChannel.connectSend(params.last)
-            : IsolateChannel.connectReceive(params),
+            ? IsolateChannel.connectSend(params.last as SendPort)
+            : IsolateChannel.connectReceive(params as ReceivePort),
         _initialParams = params is List ? params.first : null {
     _delegateSubscription = _delegate.stream.listen((event) {
       event.forEach((key, value) {
@@ -50,15 +52,15 @@ class IsolateContactorControllerImpl<R, P>
               break;
             }
 
-            _mainStreamController
-                .add(converter == null ? value : converter!(value));
+            final a = (converter?.call(value) ?? value) as R;
+            _mainStreamController.add(a);
             break;
           case IsolatePort.isolate:
             if (value == IsolateState.dispose) {
               if (onDispose != null) onDispose!();
               close();
             } else {
-              _isolateStreamController.add(value);
+              _isolateStreamController.add(value as P);
             }
             break;
         }

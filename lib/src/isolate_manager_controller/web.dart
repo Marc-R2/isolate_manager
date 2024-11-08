@@ -24,7 +24,7 @@ class IsolateManagerControllerImpl<R, P>
     dynamic params, {
     void Function()? onDispose,
   }) : _delegate = params.runtimeType == DedicatedWorkerGlobalScope
-            ? _IsolateManagerWorkerController<R, P>(params)
+            ? _IsolateManagerWorkerController<R, P>(params as DedicatedWorkerGlobalScope)
             : IsolateContactorController<R, P>(params, onDispose: onDispose);
 
   /// Mark the isolate as initialized.
@@ -63,7 +63,7 @@ class _IsolateManagerWorkerController<R, P>
 
   _IsolateManagerWorkerController(this.self) {
     self.onmessage = (MessageEvent event) {
-      _streamController.sink.add(dartify(event.data));
+      _streamController.sink.add(dartify(event.data) as P);
     }.toJS;
   }
 
