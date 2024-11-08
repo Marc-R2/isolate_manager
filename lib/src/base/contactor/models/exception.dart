@@ -28,12 +28,12 @@ class IsolateException implements Exception {
       'json should be checked by `isValidObject` before using',
     );
 
-    final decoded = jsonDecode(json.toString());
-    final values = decoded[r'$IsolateException'];
+    final decoded = jsonDecode(json.toString()) as Map<String, dynamic>;
+    final values = decoded[r'$IsolateException'] as Map<String, dynamic>;
 
     return IsolateException(
-      values['error'],
-      StackTrace.fromString(values['stack']),
+      values['error'] as Object,
+      StackTrace.fromString(values['stack'] as String),
     );
   }
 

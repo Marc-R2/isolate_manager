@@ -193,8 +193,8 @@ class IsolateManager<R, P> {
     IsolateManagerFunction.customFunction<R, P>(
       params,
       onEvent: (controller, message) {
-        final function = controller.initialParams;
-        return function(message);
+        final function = controller.initialParams as IsolateFunction<R, P>;
+        return function.call(message);
       },
     );
   }
