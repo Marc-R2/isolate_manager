@@ -23,44 +23,57 @@ class IsolateContactorControllerImplFuture<R, P>
   @override
   Completer<void> ensureInitialized = Completer();
 
-  IsolateContactorControllerImplFuture(
-    dynamic params, {
+  IsolateContactorControllerImplFuture.main(
+    StreamController<dynamic> params, {
     required this.onDispose,
     required this.converter,
     required IsolateConverter<R> workerConverter,
-  })  : _delegate = params is List
-            ? params.last.controller as StreamController
-            : params,
-        _initialParams = params is List ? params.first : null {
-    _delegate.stream.listen((event) {
-      (event as Map<IsolatePort, dynamic>).forEach((key, value) {
-        switch (key) {
-          case IsolatePort.main:
-            if (value is IsolateException) {
-              _mainStreamController.addError(value.error, value.stack);
-              break;
-            }
+  })  : _delegate = params,
+        _initialParams = null {
+    _delegate.stream.listen(_handleEvent);
+  }
 
-            if (value == IsolateState.initialized) {
-              if (!ensureInitialized.isCompleted) {
-                ensureInitialized.complete();
-              }
-              break;
-            }
+  IsolateContactorControllerImplFuture.isolate(
+    List<dynamic> params, {
+    required this.onDispose,
+    required this.converter,
+    required IsolateConverter<R> workerConverter,
+  })  : _delegate = params.last.controller as StreamController,
+        _initialParams = params.first {
+    _delegate.stream.listen(_handleEvent);
+  }
 
-            _mainStreamController.add(converter(value));
-            break;
-          case IsolatePort.isolate:
-            if (value == IsolateState.dispose) {
-              if (onDispose != null) onDispose!();
-              close();
-            } else {
-              _isolateStreamController.add(value);
-            }
-            break;
-        }
-      });
-    });
+  void _handleEvent(dynamic event) =>
+      (event as Map<IsolatePort, dynamic>).forEach(_handle);
+
+  void _handle(IsolatePort port, dynamic value) => switch (port) {
+        IsolatePort.main => _handleMain(value),
+        IsolatePort.isolate => _handleIsolate(value),
+      };
+
+  void _handleMain(dynamic value) {
+    if (value is IsolateException) {
+      _mainStreamController.addError(value.error, value.stack);
+      return;
+    }
+
+    if (value == IsolateState.initialized) {
+      if (!ensureInitialized.isCompleted) {
+        ensureInitialized.complete();
+      }
+      return;
+    }
+
+    _mainStreamController.add(converter(value));
+  }
+
+  void _handleIsolate(dynamic value) {
+    if (value == IsolateState.dispose) {
+      onDispose?.call();
+      close();
+    } else {
+      _isolateStreamController.add(value as P);
+    }
   }
 
   /// Get this StreamController

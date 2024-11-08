@@ -17,9 +17,15 @@ abstract class IsolateContactorControllerImpl<R, P>
     required IsolateConverter<R>
         workerConverter, // Converter for Worker (Web Only)
   }) {
-    if (params is StreamController ||
-        params is List && params.last.controller is StreamController) {
-      return IsolateContactorControllerImplFuture<R, P>(
+    if (params is StreamController) {
+      return IsolateContactorControllerImplFuture<R, P>.main(
+        params,
+        onDispose: onDispose,
+        converter: converter,
+        workerConverter: workerConverter,
+      );
+    } else if (params is List && params.last.controller is StreamController) {
+      return IsolateContactorControllerImplFuture<R, P>.isolate(
         params,
         onDispose: onDispose,
         converter: converter,
